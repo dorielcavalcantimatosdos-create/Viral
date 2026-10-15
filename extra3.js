@@ -1,1 +1,33 @@
-
+(()=>{
+const ST=['ideia','pesquisando','roteiro','gravando','publicado','descartado'];
+const sk=()=>'snap:'+(S.ch?S.ch.id:'x'),ik=()=>'ideas:'+(S.ch?S.ch.id:'local'),il=()=>ls(ik(),[]),is=a=>sv(ik(),a),hoje=()=>new Date().toLocaleDateString('pt-BR');
+const snap=()=>{if(!S.ch||!S.vids.length)return;const a=ls(sk(),[]),v={};S.vids.forEach(x=>v[x.id]=x.v);const n={t:new Date().toISOString(),v},l=a[a.length-1];if(l&&l.t.slice(0,10)===n.t.slice(0,10))a[a.length-1]=n;else a.push(n);sv(sk(),a.slice(-60))};
+const s0=syncAll;syncAll=async function(){const b=S.sync;await s0.apply(this,arguments);if(S.sync!==b)snap()};
+TABS.push('Histórico de números','Banco de ideias');
+V[10]=()=>{const g=gate();if(g)return g;const a=ls(sk(),[]);
+let h=`<div class="card"><b>Histórico de números</b><p class="k">Cada sincronização guarda as visualizações de todos os vídeos (uma coleta por dia, só neste navegador). Coletas guardadas: ${a.length}${a.length?', desde '+new Date(a[0].t).toLocaleDateString('pt-BR'):''}.</p></div>`;
+const Lt=a[a.length-1],P=[...a].reverse().find(s=>Lt&&new Date(Lt.t)-new Date(s.t)>=72e6);
+if(!P)return h+'<div class="card">Preciso de duas coletas com pelo menos 20 horas de diferença. Volte amanhã, conecte e toque em <b>Sincronizar agora</b>.</div>';
+const dt=(new Date(Lt.t)-new Date(P.t))/864e5;
+const rows=S.vids.filter(v=>P.v[v.id]!=null&&Lt.v[v.id]!=null).map(v=>{const ap=Math.max(1,(new Date(P.t)-new Date(v.d))/864e5),gain=Lt.v[v.id]-P.v[v.id];return{v,s:isS(v),r0:P.v[v.id]/ap,r1:gain/dt,gain}});
+const m0=[med(rows.filter(r=>!r.s).map(r=>r.r0)),med(rows.filter(r=>r.s).map(r=>r.r0))];
+const bars=[];for(let i=1;i<a.length;i++){const p=a[i-1],q=a[i],d=(new Date(q.t)-new Date(p.t))/864e5;if(d<.5)continue;let t=0;for(const id in q.v)if(p.v[id]!=null)t+=q.v[id]-p.v[id];bars.push({t:q.t,x:t/d})}
+const mx=Math.max(1,...bars.map(b=>b.x));
+h+=`<div class="card"><b>Views ganhas por dia (todos os vídeos)</b><div class="bars">${bars.map(b=>`<i title="${new Date(b.t).toLocaleDateString('pt-BR')}: ${fmt(b.x)}/dia" style="height:${Math.max(2,b.x/mx*100)}%"></i>`).join('')}</div><span class="k">${bars.length?new Date(bars[0].t).toLocaleDateString('pt-BR')+' a '+new Date(bars[bars.length-1].t).toLocaleDateString('pt-BR'):''}</span></div>`;
+h+=`<div class="card k">Comparando ${new Date(P.t).toLocaleDateString('pt-BR')} com ${new Date(Lt.t).toLocaleDateString('pt-BR')} (${dt.toFixed(1)} dias). "Antes" = média de views/dia desde a publicação até a coleta anterior; "Agora" = views/dia no período comparado. Sinais são correlações, não prova de causa.</div>`;
+h+='<div class="sc"><table><tr><th>Vídeo</th><th>Formato</th><th>Ganho</th><th>Antes</th><th>Agora</th><th>Sinal</th></tr>'+rows.sort((x,y)=>y.gain-x.gain).slice(0,20).map(r=>{const f=[];if(r.r1>=1.5*r.r0&&r.r1>=5){f.push('acelerando');if(r.r0<m0[+r.s])f.push('começou lento')}if(r.r0>=5&&r.r1<=.3*r.r0)f.push('estagnou');
+return`<tr><td>${link(r.v)}</td><td>${r.s?'Short':'Longo'}</td><td>+${fmt(r.gain)}</td><td>${fmt(r.r0)}/dia</td><td>${fmt(r.r1)}/dia</td><td>${f.join(', ')||'—'}</td></tr>`}).join('')+'</table></div>';return h};
+const linkify=t=>t.replace(/https?:\/\/[^\s<]+/g,u=>`<a href="${u}" target="_blank" rel="noopener">${u}</a>`).replace(/\n/g,'<br>');
+window.addIdea=()=>{const t=$('#it').value.trim();if(!t)return toast('Escreva o tema da ideia.');const a=il();a.unshift({id:Date.now().toString(36),t,n:$('#in').value.trim(),s:'ideia',d:hoje()});is(a);draw()};
+window.stIdea=(id,s)=>{const a=il(),x=a.find(i=>i.id===id);if(x){x.s=s;is(a);draw()}};
+window.edIdea=id=>{const a=il(),x=a.find(i=>i.id===id);if(!x)return;const n=prompt('Anotação:',x.n||'');if(n!=null){x.n=n;is(a);draw()}};
+window.dlIdea=id=>{if(confirm('Apagar esta ideia?')){is(il().filter(i=>i.id!==id));draw()}};
+window.flIdea=s=>{S.ifl=s;draw()};
+window.impIdea=()=>{if(!S.cd||!S.cd.length)return toast('Cadastre concorrentes e sincronize antes.');const a=il(),ex=new Set(a.map(i=>i.t));let n=0;opps(60,1).slice(0,10).forEach(x=>{const t=x.k.join(' ');if(!t||ex.has(t))return;a.unshift({id:Date.now().toString(36)+(n++),t,n:`Sinal: ${x.v.t} (${x.v.ch}), nota ${x.score}/100. https://youtu.be/${x.v.id}`,s:'ideia',d:hoje()})});is(a);draw();toast(n+' ideias importadas')};
+window.saveIdea=()=>{const t=$('#tm').value.trim();if(!t)return;const a=il(),f=$('#fa').value.trim(),o=$('#fo').value.trim();a.unshift({id:Date.now().toString(36),t,n:'Fatos:\n'+f+(o?'\nFontes:\n'+o:''),s:'roteiro',d:hoje()});is(a);toast('Salvo no banco de ideias')};
+window.expIdea=()=>{const m=il().map(i=>`## ${i.t} (${i.s})\n${i.n||''}\n`).join('\n'),l=document.createElement('a');l.href=URL.createObjectURL(new Blob([m],{type:'text/markdown'}));l.download='ideias.md';l.click()};
+V[11]=()=>{const a=il(),f=S.ifl||'',cnt=s=>a.filter(i=>i.s===s).length,L=f?a.filter(i=>i.s===f):a;
+return`<div class="card"><b>Banco de ideias</b><p class="k">Salvo só neste navegador (separado por canal). Use Exportar para guardar uma cópia.</p><input id="it" placeholder="Tema ou título provisório"><textarea id="in" rows="3" placeholder="Anotações, fatos, fontes (opcional)"></textarea><button class="p" onclick="addIdea()">Salvar ideia</button><button class="s" onclick="impIdea()">Importar ideias do Laboratório</button><button class="s" onclick="expIdea()">Exportar (.md)</button></div><div class="card"><button class="${f?'s':'p'}" onclick="flIdea('')">Todas (${a.length})</button>${ST.map(s=>`<button class="${f===s?'p':'s'}" onclick="flIdea('${s}')">${s} (${cnt(s)})</button>`).join('')}</div>`+(L.map(i=>`<div class="card"><b class="y">${E(i.t)}</b> <span class="k">${i.d}</span><br>${linkify(E(i.n))}<br><select onchange="stIdea('${i.id}',this.value)">${ST.map(s=>`<option ${s===i.s?'selected':''}>${s}</option>`).join('')}</select><button class="s" onclick="edIdea('${i.id}')">Editar nota</button><button class="s" onclick="dlIdea('${i.id}')">Apagar</button></div>`).join('')||'<div class="card k">Nenhuma ideia aqui ainda.</div>')};
+const m0=mk;mk=function(){m0.apply(this,arguments);const t=$('#tm'),o=$('#out'),f=$('#fa');if(t&&o&&f&&t.value.trim()&&f.value.trim())o.insertAdjacentHTML('afterbegin','<button class="p" onclick="saveIdea()">Salvar no banco de ideias</button>')};
+draw();
+})();
