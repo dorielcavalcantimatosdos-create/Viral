@@ -32,3 +32,4 @@ const d0=draw;
 draw=function(){persist();d0();if(S.chs.length)$('#st').innerHTML='<select id="cs" style="width:auto;max-width:60vw" onchange="swCh(this.value)">'+(S.ch?'':'<option value="" selected>Selecione um canal</option>')+S.chs.map(p=>`<option value="${p.id}" ${S.ch&&p.id===S.ch.id?'selected':''}>${E(p.n)}</option>`).join('')+'<option value="+">+ Adicionar canal</option></select>'};
 draw();
 })();
+<script src="extra2.js"></script>
