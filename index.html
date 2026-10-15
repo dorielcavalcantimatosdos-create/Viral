@@ -143,7 +143,6 @@ c.push(['Originalidade','—','Não avaliável automaticamente: compare com víd
 $('#out').innerHTML=`<div class="sc"><table><tr><th>Critério</th><th>Nota</th><th>Justificativa</th></tr>${c.map(x=>`<tr><td>${x[0]}</td><td class="y">${x[1]}</td><td style="white-space:normal">${E(x[2])}</td></tr>`).join('')}</table></div><div class="card"><b>Correções prioritárias</b>${low.map(x=>'<div>• '+x[0]+': '+E(x[2])+'</div>').join('')}</div>`}
 function dlr(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([report().md],{type:'text/markdown'}));a.download='auditoria-'+new Date().toISOString().slice(0,10)+'.md';a.click()}
 function draw(){$('#st').textContent=S.ch?'Conectado: '+S.ch.snippet.title:'Desconectado';$('#nav').innerHTML=TABS.map((t,i)=>`<button class="${i==S.tab?'on':''}" onclick="S.tab=${i};draw()">${t}</button>`).join('');try{$('#app').innerHTML=V[S.tab]()}catch(e){$('#app').innerHTML='<div class="card bad">Erro ao montar a tela: '+E(e.message)+'</div>'}}
-draw();
 <script src="extra.js"></script>
 <script src="extra2.js"></script>
 <script src="extra3.js"></script>
