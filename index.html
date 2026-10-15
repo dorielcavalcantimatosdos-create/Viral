@@ -145,3 +145,4 @@ function dlr(){const a=document.createElement('a');a.href=URL.createObjectURL(ne
 function draw(){$('#st').textContent=S.ch?'Conectado: '+S.ch.snippet.title:'Desconectado';$('#nav').innerHTML=TABS.map((t,i)=>`<button class="${i==S.tab?'on':''}" onclick="S.tab=${i};draw()">${t}</button>`).join('');try{$('#app').innerHTML=V[S.tab]()}catch(e){$('#app').innerHTML='<div class="card bad">Erro ao montar a tela: '+E(e.message)+'</div>'}}
 draw();
 </script></body></html>
+<script src="extra.js"></script>
