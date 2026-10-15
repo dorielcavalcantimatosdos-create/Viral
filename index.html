@@ -144,11 +144,9 @@ $('#out').innerHTML=`<div class="sc"><table><tr><th>Critério</th><th>Nota</th><
 function dlr(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([report().md],{type:'text/markdown'}));a.download='auditoria-'+new Date().toISOString().slice(0,10)+'.md';a.click()}
 function draw(){$('#st').textContent=S.ch?'Conectado: '+S.ch.snippet.title:'Desconectado';$('#nav').innerHTML=TABS.map((t,i)=>`<button class="${i==S.tab?'on':''}" onclick="S.tab=${i};draw()">${t}</button>`).join('');try{$('#app').innerHTML=V[S.tab]()}catch(e){$('#app').innerHTML='<div class="card bad">Erro ao montar a tela: '+E(e.message)+'</div>'}}
 draw();
-</script></body></html>
-<script src="extra.js"></script>
 <script src="extra.js"></script>
 <script src="extra2.js"></script>
 <script src="extra3.js"></script>
-script src="extra4.js"></script>
 <script src="extra4.js"></script>
 <script src="extra5.js"></script>
+</body></html>
