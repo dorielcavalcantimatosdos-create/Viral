@@ -49,13 +49,13 @@ a(f.th.trim().length>3,1,'Capa ou primeiro frame definido.','Sem capa/primeiro f
 a(f.cc.trim().length>3,1,'Componente crítico definido.','Qual é o componente crítico? Sem ele o título é mentira e o vídeo não existe.');
 a(f.ng.trim().length>3,1,'Riscos declarados.','Escreva o que pode dar errado. Falar só o lado bom esconde o problema até ser tarde.');
 return{s:r.reduce((s,x)=>s+(x.ok?x.pt:0),0),r}}
-const V0=()=>{const e=evT(F);let h=`<div class="card"><b>Ideia</b><p class="k">Regras simples sobre título e promessa. Não medem clique real: quem decide é a aba Resultados.</p>
+const V0=()=>{const e=evT(F);let h=`<div class="card"><b>Ideia</b><p class="k">Só o título é obrigatório. Os campos opcionais melhoram a nota e o diagnóstico.</p>
 <input id="f_t" value="${E(F.t)}" placeholder="Título (a promessa)">
-<input id="f_th" value="${E(F.th)}" placeholder="Capa ou primeiro frame: o que aparece na tela?">
+<details${F.th||F.cc||F.ng?' open':''}><summary class="y">Opcional: capa, componente crítico, negativos, formato</summary><input id="f_th" value="${E(F.th)}" placeholder="Capa ou primeiro frame: o que aparece na tela?">
 <input id="f_cc" value="${E(F.cc)}" placeholder="Componente crítico: sem isso não existe vídeo">
 <input id="f_ng" value="${E(F.ng)}" placeholder="Negativos: por que isso pode dar errado?">
 <span class="k">Formato</span><select id="f_fm">${opts(FM,F.fm)}</select>
-<span class="k">Variável que este vídeo testa (mude uma por vez)</span><select id="f_va">${opts(VA,F.va)}</select>
+<span class="k">Variável que este vídeo testa (mude uma por vez)</span><select id="f_va">${opts(VA,F.va)}</select></details>
 <button class="p" onclick="avaliar()">Avaliar</button><button class="p" onclick="addIdea()">Salvar na fila</button></div>`;
 if(e)h+=`<div class="card"><b class="y">Nota ${e.s}/10</b>${e.r.map(x=>`<div class="${x.ok?'ok':'bad'}">${x.ok?'✓':'✗'} ${E(x.m)}</div>`).join('')}</div>`;
 const l=D.i.slice().sort((a,b)=>b.c.localeCompare(a.c))[0];if(l&&l.fm===F.fm&&F.t.trim())h+=`<div class="card bad">Mesmo formato do último vídeo da fila. Formato repetido em sequência cansa: alterne.</div>`;return h};
@@ -107,9 +107,15 @@ window.saveM=id=>{const it=find(id),g=k=>num($('#m_'+id+'_'+k).value);if(!it)ret
 window.del=id=>{if(confirm('Remover este vídeo?')){D.i=D.i.filter(x=>x.id!==id);save();draw()}};
 
 /* 0. HOJE */
+function prox(A,M){const x=A.find(i=>i.status==='roteiro'||i.status==='gravado'),n=A.find(i=>i.status==='ideia');let t,b;
+if(M.length){t='Anote os números de "'+M[0].t+'" (já passaram 48 h).';b='<button class="p" onclick="tab=3;draw()">Anotar números</button>'}
+else if(x){t='Produza e publique "'+x.t+'", depois marque como publicado.';b=`<button class="p" onclick="P.id='${x.id}';tab=3;draw()">Publicar</button>`}
+else if(n){t='Escreva o roteiro de "'+n.t+'".';b=`<button class="p" onclick="R={id:'${n.id}',txt:'',du:R.du};tab=2;draw()">Escrever roteiro</button>`}
+else{t='Escreva o título do seu primeiro vídeo. Só isso.';b='<button class="p" onclick="tab=1;draw()">Cadastrar ideia</button>'}
+return`<div class="card"><b class="y">Próximo passo</b><br>${E(t)}<br>${b}</div>`}
 const V1=()=>{const A=D.i.filter(x=>x.status!=='publicado'),M=D.i.filter(x=>x.status==='publicado'&&x.m.v48==null&&ageD(x.pd)>=2);
 const last=D.i.filter(x=>x.status==='publicado'&&x.m.v48!=null).sort((a,b)=>b.pd.localeCompare(a.pd))[0],d=last&&diag(last);
-let h='';if(M.length)h+=`<div class="card"><b class="y">Medir agora (48 h já passaram)</b>${M.map(x=>`<div>• ${E(x.t)}</div>`).join('')}<button class="s" onclick="tab=3;draw()">Anotar números</button></div>`;
+let h=prox(A,M);if(M.length)h+=`<div class="card"><b class="y">Medir agora (48 h já passaram)</b>${M.map(x=>`<div>• ${E(x.t)}</div>`).join('')}<button class="s" onclick="tab=3;draw()">Anotar números</button></div>`;
 if(d)h+=`<div class="card"><b>Última leitura</b><br>${E(last.t)}<br>${E(d.t)}${d.v?`<br><span class="k">Próximo teste: mude só isto: ${E(d.v)}.</span>`:''}</div>`;
 if(A.length<3)h+=`<div class="card bad">${A.length} ideia(s) em andamento. Com menos de 3 você publica no improviso. Tenha sempre vários vídeos em fases diferentes.</div>`;
 h+=`<div class="card"><b>Em andamento</b>${A.length?'':'<br><span class="k">Nada ainda. Comece pela aba Ideia.</span>'}</div>`;
