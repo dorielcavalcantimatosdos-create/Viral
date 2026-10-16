@@ -1,155 +1,128 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>YouTube Viral Intelligence</title>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Viral</title>
 <style>
 :root{--y:#FFD60A;--p:#161616;--l:#2e2e2e;--m:#a9a9a9}
 *{box-sizing:border-box}body{margin:0;background:#000;color:#fff;font:15px/1.5 system-ui,sans-serif}
 .tape{height:10px;background:repeating-linear-gradient(-45deg,var(--y) 0 14px,#000 14px 28px)}
-h1,h2,h3{font-family:'Arial Narrow','Roboto Condensed',Impact,sans-serif;margin:.3em 0}h1{font-size:26px}
-header{padding:10px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
-nav{display:flex;overflow-x:auto;gap:4px;padding:8px;position:sticky;top:0;background:#000;border-bottom:1px solid var(--l);z-index:5}
-nav button{white-space:nowrap;background:var(--p);color:#fff;border:1px solid var(--l);padding:8px 12px;border-radius:4px}
+h1,h2,h3{font-family:'Arial Narrow','Roboto Condensed',Impact,sans-serif;margin:.3em 0}h1{font-size:26px;padding:6px 12px}
+nav{display:flex;gap:4px;padding:8px;position:sticky;top:0;background:#000;border-bottom:1px solid var(--l);z-index:5;overflow-x:auto}
+nav button{flex:1;white-space:nowrap;background:var(--p);color:#fff;border:1px solid var(--l);padding:10px 12px;border-radius:4px;font:inherit}
 nav .on{background:var(--y);color:#000;font-weight:700}
-main{max-width:980px;margin:auto;padding:12px}
+main{max-width:760px;margin:auto;padding:12px}
 .card{background:var(--p);border-left:4px solid var(--y);padding:12px;margin:10px 0}
-.sc{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px}td,th{padding:6px 8px;border-bottom:1px solid var(--l);text-align:left;white-space:nowrap}
-button.p{background:var(--y);color:#000;border:0;padding:10px 14px;font-weight:700;border-radius:4px;margin:4px 4px 4px 0}
-button.s{background:none;color:var(--y);border:1px solid var(--y);padding:8px 12px;border-radius:4px;margin:4px 4px 4px 0}
+.sc{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px}td,th{padding:6px 8px;border-bottom:1px solid var(--l);text-align:left;vertical-align:top}
+button.p{background:var(--y);color:#000;border:0;padding:10px 14px;font:inherit;font-weight:700;border-radius:4px;margin:4px 4px 4px 0}
+button.s{background:none;color:var(--y);border:1px solid var(--y);padding:8px 12px;font:inherit;border-radius:4px;margin:4px 4px 4px 0}
 input,textarea,select{width:100%;background:#000;color:#fff;border:1px solid #555;padding:9px;border-radius:4px;font:inherit;margin:4px 0}
 .k{color:var(--m);font-size:13px}.bad{color:#ff7b7b}.ok{color:#7ee787}.y{color:var(--y)}
-.bars{display:flex;align-items:flex-end;gap:3px;height:90px}.bars i{flex:1;background:var(--y);min-height:2px}
-#toast{position:fixed;bottom:12px;left:12px;right:12px;background:var(--y);color:#000;padding:10px;border-radius:4px;font-weight:700;display:none;z-index:9}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:6px}
+#t{position:fixed;bottom:12px;left:12px;right:12px;background:var(--y);color:#000;padding:10px;border-radius:4px;font-weight:700;display:none;z-index:9}
 a{color:var(--y)}:focus-visible{outline:2px solid var(--y);outline-offset:2px}
 </style></head><body>
-<div class="tape"></div>
-<header><h1>YouTube Viral Intelligence</h1><span class="k" id="st"></span></header>
-<nav id="nav"></nav><main id="app"></main><div id="toast"></div>
-<script src="https://accounts.google.com/gsi/client" async></script>
+<div class="tape"></div><h1>Viral</h1><nav id="n"></nav><main id="a"></main><div id="t"></div>
 <script>
 const $=s=>document.querySelector(s),E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const ls=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}},sv=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v))}catch{}};
-const S={cid:ls('cid',''),tok:null,ch:null,ok:false,vids:[],an:null,anErr:'',sync:null,comps:ls('comps',[]),cd:[],cs:{},hist:ls('hist',[]),tab:0,busy:false};
-const SC='https://www.googleapis.com/auth/youtube.readonly https://www.googleapis.com/auth/yt-analytics.readonly',Y='https://www.googleapis.com/youtube/v3/';
-const TABS=['Visão geral','Auditoria do canal','Oportunidades virais','Concorrentes','Laboratório de ideias','Criador de Shorts','Revisão de vídeos','Resultados e aprendizado','Plano de ação','Configurações'];
-const med=a=>{a=a.filter(x=>x!=null&&!isNaN(x)).sort((x,y)=>x-y);return a.length?a[a.length>>1]:null};
-const age=v=>Math.max(1,(Date.now()-new Date(v.d))/864e5),vpd=v=>v.v/age(v),isS=v=>v.s<=180;
-const fmt=n=>n==null?'—':n>=1e6?(n/1e6).toFixed(1)+' mi':n>=1e3?(n/1e3).toFixed(1)+' mil':Math.round(n)+'';
-const pc=n=>n==null?'—':(n*100).toFixed(2)+'%',p1=n=>n==null?'—':n.toFixed(1)+'%';
-const dl=(a,b)=>a==null||b==null||!b?'sem base':((a-b)/b*100>=0?'+':'')+((a-b)/b*100).toFixed(0)+'%';
-const dur=s=>{const m=/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/.exec(s)||[];return(+m[1]||0)*3600+(+m[2]||0)*60+(+m[3]||0)};
-const words=t=>(t.toLowerCase().match(/[\p{L}\d]+/gu)||[]).filter(w=>w.length>3&&!STOP.has(w));
-const STOP=new Set('sobre para como mais mas pelo pela pelos pelas esse essa isso este esta tudo todo toda muito quando onde porque então ainda depois antes entre desde mesmo seus suas caso casos'.split(' '));
-const NICHE=/crime|assassin|desapare|mist[ée]rio|investig|pol[ií]cia|morte|suspeit|serial|chacina|sequestr|arquiv|culpad|v[ií]tima/i;
-function toast(m){const t=$('#toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',5000)}
-async function api(u){const r=await fetch(u,{headers:{Authorization:'Bearer '+S.tok}});const j=await r.json().catch(()=>({}));if(r.status===401)throw new Error('Sessão expirou. Reconecte em Configurações.');if(!r.ok)throw new Error((j.error&&j.error.message)||'Erro '+r.status);return j}
-async function uploads(pl,max){let ids=[],pt='';while(ids.length<max){const j=await api(`${Y}playlistItems?part=contentDetails&maxResults=50&playlistId=${pl}${pt?'&pageToken='+pt:''}`);ids.push(...j.items.map(i=>i.contentDetails.videoId));pt=j.nextPageToken;if(!pt)break}
-let o=[];for(let i=0;i<ids.length;i+=50){const j=await api(`${Y}videos?part=snippet,statistics,contentDetails&id=${ids.slice(i,i+50).join(',')}`);o.push(...j.items.map(x=>({id:x.id,t:x.snippet.title,d:x.snippet.publishedAt,s:dur(x.contentDetails.duration),v:+x.statistics.viewCount||0,l:x.statistics.likeCount==null?null:+x.statistics.likeCount,c:x.statistics.commentCount==null?null:+x.statistics.commentCount})))}return o}
-function connect(){if(!S.cid)return toast('Cole o Client ID em Configurações.');if(!window.google)return toast('Biblioteca do Google não carregou. Verifique a internet.');
-google.accounts.oauth2.initTokenClient({client_id:S.cid,scope:SC,callback:async r=>{if(r.error)return toast('Erro: '+r.error);S.tok=r.access_token;try{const j=await api(Y+'channels?part=snippet,contentDetails,statistics&mine=true');if(!j.items)throw new Error('Nenhum canal do YouTube nesta conta.');S.ch=j.items[0];S.ok=false;draw()}catch(e){toast(e.message)}}}).requestAccessToken()}
-async function confirmCh(){S.ok=true;await syncAll()}
-async function syncAll(){if(!S.ok)return;S.busy=true;draw();try{S.vids=await uploads(S.ch.contentDetails.relatedPlaylists.uploads,200);await loadAn();await loadComps();S.sync=new Date();hist()}catch(e){toast(e.message)}S.busy=false;draw()}
-async function loadAn(){const d=x=>new Date(Date.now()-x*864e5).toISOString().slice(0,10);try{const j=await api(`https://youtubeanalytics.googleapis.com/v2/reports?ids=channel==MINE&startDate=${d(90)}&endDate=${d(1)}&dimensions=video&metrics=views,averageViewDuration,averageViewPercentage,subscribersGained,subscribersLost,shares&sort=-views&maxResults=200`);S.an={};(j.rows||[]).forEach(r=>S.an[r[0]]={v:r[1],ad:r[2],ap:r[3],sg:r[4],sl:r[5],sh:r[6]});S.anErr=''}catch(e){S.an=null;S.anErr=e.message}}
-async function loadComps(){S.cd=[];S.cs={};for(const c of S.comps){try{const vs=await uploads(c.u,50),b={};[0,1].forEach(f=>b[f]=med(vs.filter(v=>(+isS(v)===f)&&age(v)>=3).map(vpd)));
-vs.forEach(v=>S.cd.push({...v,ch:c.n,ratio:b[+isS(v)]?vpd(v)/b[+isS(v)]:null}));const sp=Math.max(1,(Date.now()-new Date(vs[vs.length-1].d))/6048e5);
-S.cs[c.id]={n:vs.length,f:vs.length/sp,sh:vs.filter(isS).length/vs.length,q:vs.filter(v=>/\?/.test(v.t)).length/vs.length,num:vs.filter(v=>/\d/.test(v.t)).length/vs.length}}catch(e){toast(c.n+': '+e.message)}}}
-async function addComp(){try{const q=$('#cq').value.trim(),m=q.match(/@[\w.\-]+/),c=q.match(/UC[\w-]{22}/);if(!m&&!c)throw new Error('Use @handle, link do canal ou ID que começa com UC.');
-const j=await api(`${Y}channels?part=snippet,contentDetails&${m?'forHandle='+encodeURIComponent(m[0]):'id='+c[0]}`);if(!j.items)throw new Error('Canal não encontrado.');const x=j.items[0];if(x.id===S.ch?.id)throw new Error('Esse é o seu canal.');
-if(!S.comps.find(k=>k.id===x.id)){S.comps.push({id:x.id,n:x.snippet.title,u:x.contentDetails.relatedPlaylists.uploads});sv('comps',S.comps)}S.busy=true;draw();await loadComps();S.busy=false;draw()}catch(e){toast(e.message)}}
-async function discover(){try{const j=await api(`${Y}search?part=snippet&type=channel&maxResults=8&regionCode=BR&relevanceLanguage=pt&q=${encodeURIComponent('crimes reais casos criminais')}`);$('#disc').innerHTML=j.items.map(i=>`<div class="card">${E(i.snippet.title)}<br><span class="k">${E(i.snippet.channelId)}</span> <button class="s" onclick="$('#cq').value='${i.snippet.channelId}';addComp()">Adicionar</button></div>`).join('')}catch(e){toast(e.message)}}
-function rmComp(i){S.comps.splice(i,1);sv('comps',S.comps);loadComps().then(draw)}
-function disc(){if(S.tok&&window.google)google.accounts.oauth2.revoke(S.tok);S.tok=null;S.ch=null;S.ok=false;S.vids=[];S.an=null;S.cd=[];draw()}
-function wipe(){['cid','comps','hist'].forEach(k=>localStorage.removeItem(k));S.cid='';S.comps=[];S.hist=[];disc()}
-/* análise */
-const win=(a,b)=>S.vids.filter(v=>{const g=age(v);return g>a&&g<=b});
-function grp(L){return{n:L.length,mv:med(L.map(v=>v.v)),mp:med(L.map(vpd)),lr:med(L.filter(v=>v.l!=null&&v.v).map(v=>v.l/v.v)),cr:med(L.filter(v=>v.c!=null&&v.v).map(v=>v.c/v.v)),ap:S.an?med(L.map(v=>S.an[v.id]?.ap)):null,sub:S.an?L.reduce((s,v)=>s+(S.an[v.id]?S.an[v.id].sg-S.an[v.id].sl:0),0):null,tv:L.reduce((s,v)=>s+v.v,0)}}
-function outl(f){const L=S.vids.filter(v=>(+isS(v)===f)&&age(v)>=3),b=med(L.map(vpd));return{b,L:L.map(v=>({...v,r:b?vpd(v)/b:null}))}}
-function report(){const P=[],O=[],R=[];const G={};[30,60,90].forEach(N=>G[N]={s:grp(win(0,N).filter(isS)),l:grp(win(0,N).filter(v=>!isS(v))),ps:grp(win(N,2*N).filter(isS)),pl:grp(win(N,2*N).filter(v=>!isS(v)))});
-const s=G[30].s,l=G[30].l;let md=`## Diagnóstico atual\n`;
-md+=`- Canal: ${S.ch.snippet.title}. Sincronizado em ${S.sync.toLocaleString('pt-BR')}.\n- Últimos 30 dias: ${s.n} Shorts (${(s.n/(30/7)).toFixed(1)}/semana), mediana ${fmt(s.mv)} views, ${fmt(s.mp)} views/dia. Variação de views/dia vs 30 dias anteriores: ${dl(s.mp,G[30].ps.mp)}.\n- Vídeos longos em 30 dias: ${l.n}, mediana ${fmt(l.mv)} views.\n`;
-if(!S.an)md+=`- Métricas privadas indisponíveis (${S.anErr}). Retenção e inscritos: veja Studio > Análises > Conteúdo.\n`;
-if(s.n<4)R.push('Amostra pequena (menos de 4 Shorts em 30 dias): conclusões com baixa confiança.');
-if(s.n/(30/7)<3)P.push(`Frequência baixa: ${(s.n/(30/7)).toFixed(1)} Shorts/semana. Hipótese: poucas tentativas para achar o que funciona (só aumente se mantiver qualidade).`);
-if(G[30].ps.mp&&s.mp<G[30].ps.mp*.8)P.push(`Queda de ${Math.abs(((s.mp-G[30].ps.mp)/G[30].ps.mp*100)).toFixed(0)}% nas views/dia dos Shorts vs período anterior.`);
-const g9=G[90].s;if(g9.ap!=null&&g9.ap<70)P.push(`% médio assistido dos Shorts em ${g9.ap.toFixed(0)}%. Hipótese: gancho ou ritmo perdendo público cedo; compare com seus melhores vídeos.`);
-if(g9.sub!=null&&g9.tv&&g9.sub/g9.tv*1000<2)P.push(`Conversão baixa em inscritos (${(g9.sub/g9.tv*1000).toFixed(1)} por mil views). Hipótese: falta promessa de continuidade/série.`);
-if(g9.cr!=null&&g9.cr<.002)P.push('Poucos comentários por view. Teste uma pergunta específica no final e no comentário fixado.');
-if(!S.vids.some(v=>!isS(v)))O.push('Nenhum vídeo longo publicado: formato ainda não testado.');
-const os=outl(1).L.filter(v=>v.r>=2).sort((a,b)=>b.r-a.r).slice(0,3);os.forEach(v=>O.push(`Outlier positivo: "${v.t}" (${v.r.toFixed(1)}× a mediana de Shorts). Estude gancho, tema e primeiros 3 s.`));
-if(!O.length)O.push('Cadastre concorrentes para achar oportunidades externas (aba Concorrentes).');
-if(!P.length)P.push('Nenhum problema claro nos dados disponíveis; foque em testar uma variável por vídeo.');
-md+=`\n## Principais problemas\n${P.map(x=>'- '+x).join('\n')}\n\n## Oportunidades identificadas\n${O.map(x=>'- '+x).join('\n')}\n\n## Três prioridades\n${P.slice(0,3).map((x,i)=>`- ${i+1}. ${x}`).join('\n')}\n\n## Plano para 7 dias\n`;
-md+=['Dia 1: assistir os 3 maiores outliers e anotar os 5 primeiros segundos de cada.','Dia 2: cadastrar 5+ concorrentes e sincronizar.','Dia 3: escolher 1 oportunidade e montar o pacote no Criador de Shorts.','Dia 4: revisar o roteiro no modo Revisão e publicar.','Dia 5: medir 48 h (views/dia, retenção no Studio).','Dia 6: publicar 2º Short mudando UMA variável (gancho).','Dia 7: comparar os dois com a mediana do formato e decidir o próximo.'].map(x=>'- '+x).join('\n');
-if(R.length)md+=`\n\n## Ressalvas\n${R.map(x=>'- '+x).join('\n')}\n- Correlação não é causa: padrões observados são hipóteses.`;return{md,P,O,G}}
-function md2h(m){return m.split('\n').map(l=>l.startsWith('## ')?`<h3>${E(l.slice(3))}</h3>`:l.startsWith('- ')?`<div>• ${E(l.slice(2))}</div>`:l?`<p>${E(l)}</p>`:'').join('')}
-function opps(maxAge,minR){return S.cd.filter(v=>age(v)<=maxAge&&v.ratio!=null&&v.ratio>=minR).map(v=>{const w=new Set(words(v.t)),sim=S.cd.filter(o=>o.id!==v.id&&words(o.t).filter(x=>w.has(x)).length>=2),chs=new Set(sim.map(o=>o.ch));
-const c={dem:Math.min(1,Math.log10(vpd(v)+1)/4),spd:Math.min(1,v.ratio/5),fit:NICHE.test(v.t)?1:.3,orig:1-Math.min(1,sim.length/5),fea:v.s<=60?1:v.s<=180?.8:.4,comp:1-Math.min(1,chs.size/4)};
-return{v,c,n:sim.length,k:[...w].sort((a,b)=>b.length-a.length).slice(0,3),score:Math.round(100*(.25*c.dem+.25*c.spd+.15*c.fit+.15*c.orig+.1*c.fea+.1*c.comp))}}).sort((a,b)=>b.score-a.score)}
-const link=v=>`<a href="https://youtu.be/${v.id}" target="_blank" rel="noopener">${E(v.t)}</a>`;
-function acts(){const a=[],o=opps(30,1.5)[0],r=S.vids.length?report():null,re=new Date(Date.now()+3*864e5).toLocaleDateString('pt-BR');
-a.push(o?{t:`Produzir 1 Short com ângulo próprio sobre: ${o.k.join(', ')}`,w:`"${o.v.t}" (${o.v.ch}) tem ${fmt(vpd(o.v))} views/dia, ${o.v.ratio.toFixed(1)}× a mediana do próprio canal (observado em ${new Date(o.v.d).toLocaleDateString('pt-BR')}).`,h:'2 a 3 h',m:'views em 48 h, % assistido, inscritos/mil views',r:re}:{t:'Cadastrar 5 canais concorrentes',w:'Sem concorrentes não há base para detectar oportunidades.',h:'15 min',m:'canais com dados',r:re});
-a.push(r?{t:r.P[0],w:'Vem da auditoria dos seus dados.',h:'30 min',m:'indicador citado, 7 dias depois',r:re}:{t:'Sincronizar o canal',w:'Sem dados reais não há auditoria.',h:'2 min',m:'canal conectado',r:re});
-const last=S.vids.slice().sort((x,y)=>new Date(y.d)-new Date(x.d))[0];a.push(last?{t:`Medir o último vídeo: "${last.t}"`,w:'Comparar com a mediana do formato evita decidir no achismo.',h:'10 min',m:'views/dia vs mediana',r:re}:{t:'Publicar o primeiro Short do plano',w:'Sem histórico, a primeira medição vem da publicação.',h:'2 a 3 h',m:'views em 48 h',r:re});return a}
-function hist(){const d=new Date().toLocaleDateString('pt-BR');if(S.hist[0]?.d===d)return;S.hist.unshift({d,a:acts().map(x=>x.t)});S.hist=S.hist.slice(0,15);sv('hist',S.hist)}
-/* telas */
-const gate=()=>!S.ch?'<div class="card">Conecte seu canal em <b>Configurações</b>.</div>':!S.ok?'<div class="card">Confirme o canal em <b>Visão geral</b> antes de analisar.</div>':S.busy?'<div class="card">Sincronizando…</div>':!S.vids.length?'<div class="card">Nenhum vídeo encontrado.</div>':'';
-const V=[
-()=>{let h=`<div class="card"><b>Canal conectado:</b> ${S.ch?E(S.ch.snippet.title)+` <span class="k">(${S.ch.id})</span>`:'<span class="bad">nenhum</span>'}<br><span class="k">Última sincronização: ${S.sync?S.sync.toLocaleString('pt-BR'):'nunca'}</span><br><span class="k">Dados: vídeos públicos ${S.vids.length?'<span class="ok">disponíveis</span>':'—'}; Analytics privado ${S.an?'<span class="ok">disponível</span>':S.vids.length?'<span class="bad">indisponível</span> ('+E(S.anErr)+')':'—'}</span></div>`;
-if(S.ch&&!S.ok)h+=`<div class="card">Este é o seu canal? Só depois de confirmar eu analiso dados.<br><button class="p" onclick="confirmCh()">Sim, é este</button><button class="s" onclick="disc()">Não, desconectar</button></div>`;
-if(S.ok)h+=`<button class="p" onclick="syncAll()">Sincronizar agora</button>`;const g=gate();if(g&&S.ok)return h+g;if(!S.ok)return h;
-h+=`<h2>O que fazer agora?</h2>`+acts().map((a,i)=>`<div class="card"><b class="y">${i+1}. ${E(a.t)}</b><br>${E(a.w)}<br><span class="k">Tempo: ${a.h} · Medir: ${a.m} · Reavaliar em ${a.r}</span></div>`).join('');
-const L=S.vids.slice().sort((a,b)=>new Date(b.d)-new Date(a.d)).slice(0,24).reverse(),mx=Math.max(...L.map(vpd));return h+`<div class="card"><b>Views por dia dos últimos ${L.length} vídeos</b><div class="bars">${L.map(v=>`<i title="${E(v.t)}" style="height:${vpd(v)/mx*100}%"></i>`).join('')}</div><span class="k">Vídeos novos têm poucos dias de dados; compare com cuidado.</span></div>`},
-()=>{const g=gate();if(g)return g;const r=report();let h=`<button class="p" onclick="dlr()">Exportar relatório (.md)</button><div class="card">${md2h(r.md)}</div><h3>Comparação por período</h3><div class="sc"><table><tr><th>Período</th><th>Formato</th><th>Vídeos</th><th>Views/dia (mediana)</th><th>vs anterior</th><th>Mediana views</th><th>Curtidas/view</th><th>% assistido</th><th>Inscritos líq.</th></tr>`;
-[30,60,90].forEach(N=>[['Shorts',r.G[N].s,r.G[N].ps],['Longos',r.G[N].l,r.G[N].pl]].forEach(([f,c,p])=>h+=`<tr><td>${N} d</td><td>${f}</td><td>${c.n}</td><td>${fmt(c.mp)}</td><td>${dl(c.mp,p.mp)}</td><td>${fmt(c.mv)}</td><td>${pc(c.lr)}</td><td>${p1(c.ap)}</td><td>${c.sub==null?'—':c.sub}</td></tr>`));
-h+=`</table></div><p class="k">"—" = dado indisponível (não é zero). Shorts = vídeos de até 3 min (critério aproximado; confira no Studio).</p><h3>Outliers (views/dia vs mediana do formato)</h3>`;
-[1,0].forEach(f=>{const o=outl(f).L.filter(v=>v.r&&(v.r>=2||v.r<=.4)).sort((a,b)=>b.r-a.r);h+=`<div class="card"><b>${f?'Shorts':'Longos'}</b>${o.slice(0,4).map(v=>`<div>↑ ${v.r.toFixed(1)}× ${link(v)}</div>`).join('')}${o.slice(-3).filter(v=>v.r<=.4).map(v=>`<div>↓ ${v.r.toFixed(1)}× ${link(v)}</div>`).join('')||''}${o.length?'':'<span class="k">Sem outliers claros.</span>'}</div>`});return h},
-()=>{if(!S.cd.length)return'<div class="card">Cadastre concorrentes na aba Concorrentes para detectar oportunidades.</div>';const o=opps(30,1.5);let h=`<div class="card k">Velocidade = views/dia médias desde a publicação vs mediana do próprio canal (1 coleta). Isto é <b>sinal observado</b>, não aceleração medida nem previsão de viralização. Pontuação: demanda 25, velocidade 25, adequação 15, originalidade 15, viabilidade 10, concorrência 10.</div>`;
-if(!o.length)return h+'<div class="card">Nenhum vídeo recente com desempenho ≥1,5× o normal do canal. Isso também é informação.</div>';
-const t={};S.cd.forEach(v=>new Set(words(v.t)).forEach(w=>(t[w]=t[w]||new Set()).add(v.ch)));const rec=Object.entries(t).filter(([,s])=>s.size>=2).sort((a,b)=>b[1].size-a[1].size).slice(0,8);
-h+=o.slice(0,8).map(x=>cardO(x)).join('');return h+`<div class="card"><b>Hipótese (não comprovada):</b> termos recorrentes em 2+ canais: ${rec.map(([w,s])=>E(w)+' ('+s.size+')').join(', ')||'nenhum'}.</div>`},
-()=>{let h=`<div class="card"><b>Adicionar concorrente</b><input id="cq" placeholder="@canal, link ou ID UC..."><button class="p" onclick="addComp()">Adicionar</button><button class="s" onclick="discover()">Descobrir canais (custa 100 de 10.000 unidades diárias)</button><div id="disc"></div></div>`;
-if(!S.ch)return h+'<div class="card">Conecte seu canal primeiro.</div>';if(S.busy)return h+'Carregando…';
-h+=S.comps.map((c,i)=>{const s=S.cs[c.id];return`<div class="card"><b>${E(c.n)}</b> <button class="s" onclick="rmComp(${i})">Remover</button>${s?`<br><span class="k">${s.n} vídeos analisados · ${s.f.toFixed(1)} posts/semana · ${(s.sh*100).toFixed(0)}% Shorts · ${(s.q*100).toFixed(0)}% títulos com pergunta · ${(s.num*100).toFixed(0)}% com número</span>`:''}</div>`}).join('');
-const top=S.cd.filter(v=>v.ratio).sort((a,b)=>b.ratio-a.ratio).slice(0,6);return h+(top.length?`<h3>Maiores desempenhos vs histórico de cada canal</h3>`+top.map(v=>`<div class="card">${v.ratio.toFixed(1)}× · ${E(v.ch)} · ${link(v)}</div>`).join('')+'<p class="k">Use como estudo de princípios (ritmo, abertura, estrutura). Não copie roteiro, título exclusivo ou thumbnail.</p>':'')},
-()=>{if(!S.cd.length)return'<div class="card">Cadastre concorrentes para gerar ideias com base em evidências.</div>';const o=opps(60,1).slice(0,10);return`<div class="card k">Ideias derivadas de sinais reais. Títulos e ganchos são <b>modelos</b>: preencha com fatos verificados. Pontuação 0–100 é priorização, não previsão estatística. Confiança limitada a "média" (1 coleta, amostra pequena).</div>`+o.map((x,i)=>{const risk=/estupr|tortur|mutil|decapit|esquarte|sangue/i.test(x.v.t)?'alto':'médio (crimes reais exigem checagem)';return`<div class="card"><b class="y">${i+1}. Nota ${x.score}/100</b> — Título provisório: "O que se sabe (e o que não se sabe) sobre ${E(x.k.join(' '))}"<br>Gancho: "Em [ano], [fato documentado]. Por que ainda há perguntas?"<br>Promessa: cronologia verificável + o que segue em aberto.<br><span class="k">Evidência: ${link(x.v)} (${E(x.v.ch)}), ${x.v.ratio.toFixed(1)}× o normal · Retenção: ${x.v.s<=45?'alta':'média'} (curto) · Produção: ${x.v.s<=60?'baixa':'média'} · Risco editorial: ${risk} · Diferencial: ${x.n} vídeos parecidos; use documento primário ou ângulo de cronologia.</span></div>`}).join('')||'<div class="card">Poucos dados recentes.</div>'},
-()=>`<div class="card"><b>Criador de Shorts</b><p class="k">Eu estruturo o pacote; os fatos e fontes vêm de você (não invento fatos). Para pesquisar de graça, copie o prompt abaixo em qualquer chatbot com busca e confira cada fonte.</p>
-<input id="tm" placeholder="Tema/caso"><select id="du"><option>15</option><option>20</option><option selected>30</option><option>45</option><option>60</option></select>
-<textarea id="fa" rows="6" placeholder="Fatos verificados, um por linha"></textarea><textarea id="fo" rows="3" placeholder="Fontes (URL e data), uma por linha"></textarea>
-<button class="p" onclick="mk()">Gerar pacote</button><button class="s" onclick="cp()">Copiar prompt de pesquisa</button></div><div id="out"></div>`,
-()=>`<div class="card"><b>Revisão antes de publicar</b><input id="rt" placeholder="Título"><textarea id="rs" rows="8" placeholder="Cole o roteiro"></textarea><button class="p" onclick="rv()">Avaliar</button><p class="k">Avaliação por regras. Não verifica fatos nem originalidade: isso é manual.</p></div><div id="out"></div>`,
-()=>{const g=gate();if(g)return g;let h='<div class="card k">Compara cada vídeo (90 dias) com a mediana do mesmo formato. Padrões são correlações, não provas de causa.</div><div class="sc"><table><tr><th>Vídeo</th><th>Formato</th><th>Views/dia</th><th>vs mediana</th><th>% assistido</th><th>Inscritos/mil views</th><th>Sinal</th></tr>';
-const b=[outl(0).b,outl(1).b],aps=med(S.vids.map(v=>S.an?.[v.id]?.ap));S.vids.filter(v=>age(v)<=90).slice(0,25).forEach(v=>{const a=S.an?.[v.id],r=b[+isS(v)]?vpd(v)/b[+isS(v)]:null,cv=a&&v.v?(a.sg-a.sl)/v.v*1000:null,f=[];
-if(r>=1.5)f.push('acima do padrão');if(r!=null&&r<=.5)f.push('abaixo do padrão');if(a&&aps!=null&&a.ap<aps-10)f.push('perda de retenção');if(cv!=null&&r>=1&&cv<1)f.push('views sem inscritos');if(age(v)<3)f.push('muito novo');
-h+=`<tr><td>${link(v)}</td><td>${isS(v)?'Short':'Longo'}</td><td>${fmt(vpd(v))}</td><td>${r?r.toFixed(1)+'×':'—'}</td><td>${p1(a?.ap)}</td><td>${cv==null?'—':cv.toFixed(1)}</td><td>${f.join(', ')||'—'}</td></tr>`});return h+'</table></div>'},
-()=>{const g=gate();if(g)return g;return`<div class="card">${md2h('## Plano'+report().md.split('## Plano')[1])}</div><h3>Histórico de recomendações</h3>`+(S.hist.map(h=>`<div class="card"><b>${h.d}</b>${h.a.map(x=>'<div>• '+E(x)+'</div>').join('')}</div>`).join('')||'<span class="k">Vazio.</span>')},
-()=>`<div class="card"><b>Conexão</b><br>Passos gratuitos (uma vez): 1) console.cloud.google.com, crie um projeto. 2) Ative "YouTube Data API v3" e "YouTube Analytics API". 3) Tela de consentimento OAuth: tipo Externo, adicione seu e-mail como usuário de teste. 4) Credenciais > ID do cliente OAuth > Aplicativo da Web; em "Origens JavaScript autorizadas" coloque o endereço onde este arquivo está hospedado (ex.: https://seuusuario.github.io ou http://localhost:8000). 5) Cole o Client ID abaixo.<input id="ci" value="${E(S.cid)}" placeholder="xxxx.apps.googleusercontent.com"><button class="p" onclick="S.cid=$('#ci').value.trim();sv('cid',S.cid);toast('Salvo')">Salvar</button><button class="p" onclick="connect()">Conectar com Google</button><button class="s" onclick="disc()">Desconectar</button><button class="s" onclick="wipe()">Apagar dados locais</button></div>
-<div class="card k">Permissões (somente leitura): youtube.readonly e yt-analytics.readonly. O token fica só na memória desta aba e some ao fechar. Nada é enviado a servidores além do Google. Nenhuma ação altera seu canal.<br>Limites: cota diária de 10.000 unidades (cada sincronização gasta poucas dezenas). Retenção e inscritos dependem do Analytics; o que faltar aparece como indisponível. Manual: Studio > Análises > Conteúdo.</div>`];
-function cardO(x){return`<div class="card"><b class="y">${x.score}/100</b> ${link(x.v)}<br><span class="k">Evidência: ${E(x.v.ch)}, publicado em ${new Date(x.v.d).toLocaleDateString('pt-BR')}, ${fmt(x.v.v)} views, ${fmt(vpd(x.v))}/dia (${x.v.ratio.toFixed(1)}× o normal do canal). Concorrência observada: ${x.n} vídeos parecidos. Confiança: média (1 coleta). Prazo de relevância: hipótese, 1–2 semanas.</span><br>Ângulo original: cronologia com documento primário e o que mudou na investigação. Formato: ${x.v.s<=60?'Short 30–45 s':'Short 45–60 s'}.<br><span class="bad">Risco: confirmar fatos e evitar sensacionalismo ou acusação a pessoas sem condenação.</span></div>`}
-function mk(){const t=$('#tm').value.trim(),d=+$('#du').value,F=$('#fa').value.split('\n').map(x=>x.trim()).filter(Boolean),So=$('#fo').value.split('\n').filter(x=>x.trim());if(!t||!F.length)return toast('Informe tema e ao menos um fato.');
-const hk=[`O que realmente aconteceu no caso ${t}?`,F[0].replace(/\.$/,'')+'. E isso é só o começo.',`Estes são os fatos documentados do caso ${t} e a pergunta que continua aberta.`],bud=Math.floor(d*2.5*.88),cl='Fontes na descrição. Qual detalhe você investigaria primeiro?';
-const sc=[hk[0],...F,cl],wc=s=>s.split(/\s+/).length,tot=sc.reduce((a,s)=>a+wc(s),0),ses=tot/2.5;
-$('#out').innerHTML=`<div class="card"><b>Narração</b> ${tot} palavras · ~${ses.toFixed(0)} s sem pausas (meta ${d} s, orçamento ~${bud} palavras) ${tot>bud?'<b class="bad">— corte ~'+(tot-bud)+' palavras</b>':'<span class="ok">— cabe</span>'}<br><span class="k">Estimativa a 150 palavras/min; confirme após gravar.</span></div><div class="card"><b>3 ganchos</b>${hk.map((h,i)=>`<div>${'ABC'[i]}) ${E(h)}</div>`).join('')}</div><div class="card"><b>Roteiro por cenas</b>${sc.map((s,i)=>`<div>Cena ${i+1} (~${(wc(s)/2.5).toFixed(1)} s): ${E(s)}<br><span class="k">Tela: "${E(s.split(/\s+/).slice(0,5).join(' '))}" · Apoio: ${i==0?'plano de impacto/mapa do local':i==sc.length-1?'frame final + pergunta':'documento, recorte de jornal ou mapa (arquivo livre/licenciado)'} · Corte rápido a cada 2–3 s</span></div>`).join('<hr>')}</div>
-<div class="card"><b>Título:</b> ${E((t+': '+F[0]).slice(0,60))}<br><b>Descrição:</b> ${E(t)} — ${E(F.slice(0,2).join(' '))} crimes reais, casos criminais, investigação. Fontes: ${So.map(E).join(' | ')||'(adicione)'}<br><b>Hashtags:</b> #crimesreais #casoscriminais #investigação #mistério #Shorts<br><b>Comentário fixado:</b> ${E(cl)}<br><b>Thumbnail:</b> não essencial em Shorts; se usar, 1 imagem de arquivo + 3 palavras.</div>
-<div class="card"><b>Checklist</b><br>☐ Cada fato tem fonte aberta ☐ Fato separado de suposição ☐ Ninguém tratado como culpado sem condenação ☐ Sem imagens gráficas ☐ Direitos das imagens ☐ Título condiz com conteúdo ☐ Duração ≤ ${d} s</div>`}
-function cp(){const t=$('#tm').value||'[caso]';navigator.clipboard.writeText(`Pesquise o caso "${t}" (Brasil). Liste apenas fatos verificáveis, cada um com fonte (URL) e data. Separe fatos confirmados de suposições. Se não houver fonte, diga "sem fonte". Não invente nada.`).then(()=>toast('Copiado'))}
-function rv(){const t=$('#rt').value,s=$('#rs').value.trim();if(!s)return toast('Cole o roteiro.');const ss=s.split(/(?<=[.!?])\s+/).filter(Boolean),n=s.split(/\s+/).length,f=ss[0],fw=f.split(/\s+/).length,c=[],cl=x=>Math.max(0,Math.min(10,Math.round(x))),m=(r)=>(s.match(r)||[]).length;
-c.push(['Primeiros segundos',cl(10-(fw>18?3:0)-(/[?\d]/.test(f)?0:3)-(/^(oi|olá|fala|bom dia|hoje)/i.test(f)?3:0)),`1ª frase com ${fw} palavras; ${/[?\d]/.test(f)?'tem':'sem'} pergunta ou dado concreto.`]);
-const av=n/ss.length;c.push(['Clareza',cl(10-Math.max(0,av-14)*.8),`${av.toFixed(1)} palavras por frase (ideal ≤14).`]);
-const lg=ss.filter(x=>x.split(/\s+/).length>25).length,sec=n/2.5;c.push(['Ritmo',cl(10-(sec>60?(sec-60)/6:0)-lg*1.5),`~${sec.toFixed(0)} s de narração; ${lg} frases >25 palavras.`]);
-const fi=m(/\b(então|tipo|basicamente|na verdade|vamos lá|fala galera|antes de começar|inscreva-se)\b/gi);c.push(['Informação desnecessária',cl(10-fi*2),`${fi} muletas/enrolações.`]);
-const yr=/\b(1[89]|20)\d\d\b/.test(s);c.push(['Lacunas de contexto',yr?8:4,yr?'Há data no texto; confira local e personagens.':'Nenhuma data citada: situe o espectador no tempo.']);
-const ab=m(/(com certeza|sem dúvida|foi ele|foi ela|é culpado|o culpado|o assassino)/gi),at=/(segundo|de acordo|conforme|condenad|denúncia|inquérito|processo)/i.test(s);c.push(['Precisão factual (indício)',cl(10-ab*2.5-(at?0:2)),`${ab} afirmações absolutas; ${at?'há':'sem'} atribuição de fonte. Verifique fatos manualmente.`]);
-const pv=m(/\b(mas|porém|até hoje|revel\w+|descobr\w+|nunca|ninguém)\b/gi);c.push(['Potencial de retenção',cl(3+Math.min(4,pv)+(/\?/.test(f)?2:0)),`${pv} viradas/promessas; ${/\?/.test(f)?'abre com pergunta':'abertura sem pergunta'}.`]);
-if(t){const w=new Set(words(s)),tw=words(t),ov=tw.length?tw.filter(x=>w.has(x)).length/tw.length:0,bt=/chocante|inacredit|você não vai acreditar/i.test(t);c.push(['Título × conteúdo',cl(ov*10-(bt?3:0)),`${(ov*100).toFixed(0)}% das palavras do título aparecem no roteiro${bt?'; título com tom de clickbait':''}.`])}
-const rk=(s.match(/estupr\w*|tortur\w*|mutil\w*|decapit\w*|esquarte\w*|sangue|cad[áa]ver|suic[ií]d\w*|abuso sexual/gi)||[]);c.push(['Políticas e risco de anúncios',cl(10-rk.length*1.5),rk.length?`Termos sensíveis: ${[...new Set(rk.map(x=>x.toLowerCase()))].join(', ')}. Use linguagem factual, sem detalhes gráficos.`:'Sem termos sensíveis detectados.']);
-c.push(['Originalidade','—','Não avaliável automaticamente: compare com vídeos existentes.']);const low=c.filter(x=>x[1]!=='—').sort((a,b)=>a[1]-b[1]).slice(0,3);
-$('#out').innerHTML=`<div class="sc"><table><tr><th>Critério</th><th>Nota</th><th>Justificativa</th></tr>${c.map(x=>`<tr><td>${x[0]}</td><td class="y">${x[1]}</td><td style="white-space:normal">${E(x[2])}</td></tr>`).join('')}</table></div><div class="card"><b>Correções prioritárias</b>${low.map(x=>'<div>• '+x[0]+': '+E(x[2])+'</div>').join('')}</div>`}
-function dlr(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([report().md],{type:'text/markdown'}));a.download='auditoria-'+new Date().toISOString().slice(0,10)+'.md';a.click()}
-function draw(){$('#st').textContent=S.ch?'Conectado: '+S.ch.snippet.title:'Desconectado';$('#nav').innerHTML=TABS.map((t,i)=>`<button class="${i==S.tab?'on':''}" onclick="S.tab=${i};draw()">${t}</button>`).join('');try{$('#app').innerHTML=V[S.tab]()}catch(e){$('#app').innerHTML='<div class="card bad">Erro ao montar a tela: '+E(e.message)+'</div>'}}
+const K='viral2';let D;try{D=JSON.parse(localStorage.getItem(K))}catch{}D=D&&Array.isArray(D.i)?D:{i:[]};
+function toast(m){const t=$('#t');t.textContent=m;t.style.display='block';clearTimeout(toast.x);toast.x=setTimeout(()=>t.style.display='none',4000)}
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(D))}catch{toast('Não consegui salvar neste navegador.')}};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,5),today=()=>new Date().toISOString().slice(0,10);
+const ageD=d=>(Date.now()-new Date(d+'T12:00:00'))/864e5,find=id=>D.i.find(x=>x.id===id);
+const med=a=>{a=a.filter(x=>x!=null).sort((x,y)=>x-y);if(!a.length)return null;const h=a.length>>1;return a.length%2?a[h]:(a[h-1]+a[h])/2};
+const num=s=>{const x=String(s??'').replace(/\s|%/g,'').replace(/\.(?=\d{3})/g,'').replace(',','.');if(x==='')return null;const n=+x;return isNaN(n)||n<0?null:n};
+const wd=t=>(String(t).toLowerCase().match(/[\p{L}\d]{4,}/gu)||[]);
+const copy=t=>navigator.clipboard?navigator.clipboard.writeText(t).then(()=>toast('Copiado.'),()=>toast('Não consegui copiar.')):toast('Copie manualmente.');
+const ST=['ideia','roteiro','gravado','publicado'],PL=['YouTube Shorts','Facebook Reels'];
+const FM=['Degraus crescentes (cada etapa mais forte)','Resultado só no final','Desafio com tempo ou limite','Antes e depois','Lista (X coisas)','Outro'];
+const VA=['Gancho (3 primeiros s)','Título','Capa ou primeiro frame','Meio (virada e ritmo)','Formato','Tema','Nada (primeiro teste)'];
+const opts=(a,s)=>a.map(x=>`<option${x===s?' selected':''}>${E(x)}</option>`).join('');
+const blank=()=>({t:'',th:'',cc:'',ng:'',fm:FM[0],va:VA[6]});
+let tab=0,F=blank(),R={id:'',txt:'',du:'30'},P={id:'',pl:PL[0],d:today(),du:'30'};
+
+/* 1. IDEIA: título, capa e promessa antes de produzir */
+const EXT=/sobrevi|nunca|pior|melhor|maior|menor|imposs[ií]vel|proibid|segredo|erro|ningu[eé]m|extrem|perigos|loucur|verdade|mentira|golpe|quebr|perdi|arrisc|absurd|bizarr|milh/i;
+function evT(f){const t=f.t.trim();if(!t)return null;const r=[],a=(ok,pt,y,n)=>r.push({ok,pt,m:ok?y:n});
+a(t.length>=18&&t.length<=60,1,`Tamanho bom (${t.length} caracteres).`,`Tamanho ${t.length}: use de 18 a 60 caracteres para ler no celular.`);
+a(EXT.test(t),2,'Tem termo extremo ou de risco.','Sem extremo. "Gastei 50 reais" perde para "Sobrevivi com 50 reais": vá ao extremo que você consegue entregar.');
+a(/\d/.test(t),1,'Tem número ou escala.','Sem número. Escala concreta (100, 24 horas, 1 milhão) ajuda o clique.');
+a(/\?|por que|porque|o que|ningu[eé]m|segredo|verdade|nunca/i.test(t),2,'Abre uma pergunta que só o vídeo responde.','Não abre curiosidade. Faça o espectador precisar do final para saber a resposta.');
+a(!/\b(dicas?|sobre|algumas?|coisas?|um pouco|geral)\b/i.test(t),1,'Título concreto.','Termo vago (dicas, sobre, coisas): troque por algo que dê para visualizar.');
+a(f.th.trim().length>3,1,'Capa ou primeiro frame definido.','Sem capa/primeiro frame: a expectativa do espectador fica solta.');
+a(f.cc.trim().length>3,1,'Componente crítico definido.','Qual é o componente crítico? Sem ele o título é mentira e o vídeo não existe.');
+a(f.ng.trim().length>3,1,'Riscos declarados.','Escreva o que pode dar errado. Falar só o lado bom esconde o problema até ser tarde.');
+return{s:r.reduce((s,x)=>s+(x.ok?x.pt:0),0),r}}
+const V0=()=>{const e=evT(F);let h=`<div class="card"><b>Ideia</b><p class="k">Regras simples sobre título e promessa. Não medem clique real: quem decide é a aba Resultados.</p>
+<input id="f_t" value="${E(F.t)}" placeholder="Título (a promessa)">
+<input id="f_th" value="${E(F.th)}" placeholder="Capa ou primeiro frame: o que aparece na tela?">
+<input id="f_cc" value="${E(F.cc)}" placeholder="Componente crítico: sem isso não existe vídeo">
+<input id="f_ng" value="${E(F.ng)}" placeholder="Negativos: por que isso pode dar errado?">
+<span class="k">Formato</span><select id="f_fm">${opts(FM,F.fm)}</select>
+<span class="k">Variável que este vídeo testa (mude uma por vez)</span><select id="f_va">${opts(VA,F.va)}</select>
+<button class="p" onclick="avaliar()">Avaliar</button><button class="p" onclick="addIdea()">Salvar na fila</button></div>`;
+if(e)h+=`<div class="card"><b class="y">Nota ${e.s}/10</b>${e.r.map(x=>`<div class="${x.ok?'ok':'bad'}">${x.ok?'✓':'✗'} ${E(x.m)}</div>`).join('')}</div>`;
+const l=D.i.slice().sort((a,b)=>b.c.localeCompare(a.c))[0];if(l&&l.fm===F.fm&&F.t.trim())h+=`<div class="card bad">Mesmo formato do último vídeo da fila. Formato repetido em sequência cansa: alterne.</div>`;return h};
+window.avaliar=()=>draw();
+window.addIdea=()=>{if(!F.t.trim())return toast('Escreva o título.');D.i.unshift({id:uid(),...F,t:F.t.trim(),c:new Date().toISOString(),status:'ideia',script:'',m:{}});save();F=blank();tab=0;draw();toast('Salvo na fila.')};
+
+/* 2. ROTEIRO: tempo por trecho e regras de retenção */
+const TELL=/(vou (te )?(mostrar|contar|explicar)|neste v[ií]deo|nesse v[ií]deo|antes de come[cç]ar)/i,GREET=/^(oi|ol[aá]|fala|e a[ií]|bom dia|boa noite|hoje)\b/i,FILL=/\b(ent[aã]o|tipo|basicamente|na verdade|vamos l[aá]|enfim)\b/i;
+const END=/(obrigad|[eé] isso( a[ií])?|at[eé] a pr[oó]xima|tchau|nos vemos|espero que|inscreva)/i,TURN=/\?|\d|\b(mas|por[eé]m|s[oó] que|at[eé] que|de repente|ningu[eé]m|nunca)\b/i;
+function evR(txt,du,title){const L=txt.split('\n').map(x=>x.trim()).filter(Boolean);if(!L.length)return null;let c=0;
+const B=L.map(l=>{const n=l.split(/\s+/).length,s=n/2.5,o={l,n,a:c,b:c+s,f:[]};c+=s;return o}),T=c,g=[],b0=B[0];
+if(b0.n>14)b0.f.push('Gancho longo: o primeiro trecho tem que prender em ~5 s.');
+if(GREET.test(b0.l)||TELL.test(b0.l))b0.f.push('Abre com saudação ou aviso. Comece pela promessa ou pelo fato mais forte.');
+if(title&&!wd(title).some(w=>wd(B.slice(0,2).map(x=>x.l).join(' ')).includes(w)))g.push('Os primeiros trechos não retomam a promessa do título. Quebrou a expectativa, o espectador sai.');
+B.forEach(x=>{if(x.n>15)x.f.push('Trecho pesado (>6 s): divida ou troque a imagem.');if(x.a<10&&TELL.test(x.l)&&x!==b0)x.f.push('Está avisando em vez de mostrar. Mostre.');if(FILL.test(x.l))x.f.push('Enrolação: corte.')});
+if(B.length>=4&&!B.some(x=>x.a/T>=.35&&x.a/T<=.65&&TURN.test(x.l)))g.push('Sem virada perto da metade. Coloque aí o momento mais forte para reengajar.');
+const z=B[B.length-1];if(END.test(z.l))z.f.push('Despedida no fim. Termine abrupto, no resultado ou na revelação.');
+g.push(T>du?`Estoura ${(T-du).toFixed(0)} s. Corte ~${Math.ceil((T-du)*2.5)} palavras.`:`Cabe: ~${T.toFixed(0)} s de ${du} s.`);return{B,g,T}}
+const V2=()=>{const q=D.i.filter(x=>x.status!=='publicado');let h=`<div class="card"><b>Roteiro</b><p class="k">Um trecho por linha. O app calcula o tempo (150 palavras por minuto) e aponta onde o espectador tende a sair.</p>
+<select id="r_id"><option value="">Escolha uma ideia da fila</option>${q.map(x=>`<option value="${x.id}"${x.id===R.id?' selected':''}>${E(x.t)}</option>`).join('')}</select>
+<span class="k">Duração (segundos)</span><select id="r_du">${opts(['15','20','30','45','60'],R.du)}</select>
+<textarea id="r_txt" rows="9" placeholder="Linha 1: gancho&#10;Linhas seguintes: fatos e viradas&#10;Última linha: resultado">${E(R.txt)}</textarea>
+<button class="p" onclick="draw()">Analisar</button><button class="s" onclick="saveR()">Salvar no vídeo</button></div>`;
+const it=find(R.id),e=evR(R.txt,+R.du,it?it.t:'');if(!e)return h;
+h+=`<div class="card"><b>Análise</b>${e.g.map(x=>`<div>• ${E(x)}</div>`).join('')}</div><div class="card sc"><table><tr><th>Tempo</th><th>Trecho</th><th>Alerta</th></tr>${e.B.map(x=>`<tr><td>${x.a.toFixed(0)}–${x.b.toFixed(0)} s</td><td>${E(x.l)}</td><td class="bad">${E(x.f.join(' '))||'<span class="ok">ok</span>'}</td></tr>`).join('')}</table></div><button class="s" onclick="cpR()">Copiar com tempos</button>`;return h};
+window.saveR=()=>{const it=find(R.id);if(!it)return toast('Escolha uma ideia da fila.');it.script=R.txt;if(it.status==='ideia')it.status='roteiro';save();toast('Roteiro salvo.')};
+window.cpR=()=>{const e=evR(R.txt,+R.du,'');if(e)copy(e.B.map(x=>`[${x.a.toFixed(0)}-${x.b.toFixed(0)} s] ${x.l}`).join('\n'))};
+
+/* 3. RESULTADOS: nota x/10 contra os 9 anteriores e diagnóstico */
+function nota(it){const p=D.i.filter(x=>x.status==='publicado'&&x.id!==it.id&&x.pl===it.pl&&x.m.v48!=null&&x.pd<=it.pd).sort((a,b)=>b.pd.localeCompare(a.pd)).slice(0,9);return{r:1+p.filter(x=>x.m.v48>it.m.v48).length,n:p.length+1}}
+function diag(it){if(it.m.v48==null)return null;const B=D.i.filter(x=>x.status==='publicado'&&x.m.v48!=null&&x.id!==it.id);
+if(B.length<3)return{t:`Base pequena: faltam ${3-B.length} vídeo(s) medidos para comparar. Sem comparação, qualquer leitura é palpite.`};
+const mv=med(B.map(x=>x.m.v48)),ms=med(B.map(x=>x.m.st)),ma=med(B.map(x=>x.m.ap)),m=it.m;
+if(m.st==null&&m.ap==null)return{t:'Preencha "% que ficou" e "% assistido" para diagnosticar.'};
+if(m.st!=null&&ms!=null&&m.st<ms-5)return{t:'Perde gente logo no início (viram e deslizaram). O problema está no gancho, título ou capa. Reescreva só o gancho.',v:VA[0]};
+if(m.ap!=null&&ma!=null&&m.ap<ma-5)return{t:'Entra bem, mas sai no meio. Tem enrolação ou falta virada perto de 50%. Corte e reforce o meio.',v:VA[3]};
+if(m.v48<mv)return{t:'Retenção normal, entrega baixa: tema, título ou capa não despertou clique. Mantenha o roteiro e teste outro título.',v:VA[1]};
+return{t:'Acima da sua mediana, sem queda clara. Repita o formato e mude UMA variável (o tema) para saber a causa.',v:VA[5]}}
+const V3=()=>{const q=D.i.filter(x=>x.status!=='publicado');let h=`<div class="card"><b>Publicar</b><select id="p_id"><option value="">Escolha um vídeo da fila</option>${q.map(x=>`<option value="${x.id}"${x.id===P.id?' selected':''}>${E(x.t)}</option>`).join('')}</select>
+<div class="g"><select id="p_pl">${opts(PL,P.pl)}</select><input id="p_d" type="date" value="${P.d}"><input id="p_du" inputmode="numeric" value="${E(P.du)}" placeholder="Duração (s)"></div><button class="p" onclick="pub()">Marcar como publicado</button></div>`;
+const L=D.i.filter(x=>x.status==='publicado').sort((a,b)=>b.pd.localeCompare(a.pd));
+h+=L.map(x=>{const n=x.m.v48!=null?nota(x):null,d=diag(x),f=(k,l,md)=>`<div><span class="k">${l}</span><input id="m_${x.id}_${k}" inputmode="${md}" value="${E(x.m[k]??'')}"></div>`;
+return`<div class="card"><b>${E(x.t)}</b><br><span class="k">${x.pd.split('-').reverse().join('/')} · ${E(x.pl)} · testou: ${E(x.va)}${n?` · nota <b class="y">${n.r}/${n.n>=10?10:n.n}</b>${n.n<10?' (base pequena)':''}`:''}</span>
+<div class="g">${f('v48','Views em 48 h','numeric')}${f('st','% que ficou (não deslizou)','decimal')}${f('ap','% assistido médio','decimal')}${f('v7','Views em 7 dias','numeric')}</div>
+<button class="p" onclick="saveM('${x.id}')">Salvar métricas</button><button class="s" onclick="del('${x.id}')">Remover</button>${d?`<div class="y">${E(d.t)}</div>${d.v?`<div class="k">Próxima variável a testar: ${E(d.v)}.</div>`:''}`:''}</div>`}).join('');
+return h+(L.length?'<p class="k">Onde achar: YouTube Studio > Análises > Conteúdo; Facebook > Insights. Padrões com menos de 5 vídeos são hipótese, não causa.</p>':'')};
+window.pub=()=>{const it=find(P.id);if(!it)return toast('Escolha um vídeo da fila.');Object.assign(it,{status:'publicado',pl:P.pl,pd:P.d||today(),du:num(P.du)});save();P.id='';draw()};
+window.saveM=id=>{const it=find(id),g=k=>num($('#m_'+id+'_'+k).value);if(!it)return;const st=g('st'),ap=g('ap');if((st!=null&&st>100)||(ap!=null&&ap>100))return toast('Percentuais ficam entre 0 e 100.');it.m={v48:g('v48'),st,ap,v7:g('v7')};save();toast('Métricas salvas.');draw()};
+window.del=id=>{if(confirm('Remover este vídeo?')){D.i=D.i.filter(x=>x.id!==id);save();draw()}};
+
+/* 0. HOJE */
+const V1=()=>{const A=D.i.filter(x=>x.status!=='publicado'),M=D.i.filter(x=>x.status==='publicado'&&x.m.v48==null&&ageD(x.pd)>=2);
+const last=D.i.filter(x=>x.status==='publicado'&&x.m.v48!=null).sort((a,b)=>b.pd.localeCompare(a.pd))[0],d=last&&diag(last);
+let h='';if(M.length)h+=`<div class="card"><b class="y">Medir agora (48 h já passaram)</b>${M.map(x=>`<div>• ${E(x.t)}</div>`).join('')}<button class="s" onclick="tab=3;draw()">Anotar números</button></div>`;
+if(d)h+=`<div class="card"><b>Última leitura</b><br>${E(last.t)}<br>${E(d.t)}${d.v?`<br><span class="k">Próximo teste: mude só isto: ${E(d.v)}.</span>`:''}</div>`;
+if(A.length<3)h+=`<div class="card bad">${A.length} ideia(s) em andamento. Com menos de 3 você publica no improviso. Tenha sempre vários vídeos em fases diferentes.</div>`;
+h+=`<div class="card"><b>Em andamento</b>${A.length?'':'<br><span class="k">Nada ainda. Comece pela aba Ideia.</span>'}</div>`;
+h+=A.map(x=>`<div class="card"><b>${E(x.t)}</b><br><span class="k">${E(x.fm)} · testa: ${E(x.va)}</span>${x.cc?`<br><span class="k">Crítico: ${E(x.cc)}</span>`:''}<select onchange="setSt('${x.id}',this.value)">${opts(ST.slice(0,3),x.status)}</select><button class="s" onclick="R={id:'${x.id}',txt:find('${x.id}').script||'',du:R.du};tab=2;draw()">Roteiro</button><button class="s" onclick="P.id='${x.id}';tab=3;draw()">Publicar</button><button class="s" onclick="del('${x.id}')">Apagar</button></div>`).join('');
+return h+`<div class="card"><b>Backup</b><p class="k">Os dados ficam só neste navegador. Limpar o navegador apaga tudo.</p><button class="s" onclick="bk()">Exportar</button><input id="imp" type="file" accept=".json" onchange="im(this)"></div>`};
+window.setSt=(id,s)=>{const it=find(id);if(it){it.status=s;save()}};
+window.bk=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(D)],{type:'application/json'}));a.download='viral-backup-'+today()+'.json';a.click()};
+window.im=el=>{const f=el.files[0];if(!f)return;f.text().then(t=>{const j=JSON.parse(t);if(!Array.isArray(j.i))throw 0;D=j;save();draw();toast('Backup importado.')}).catch(()=>toast('Arquivo inválido.'))};
+
+/* base */
+const TABS=['Hoje','Ideia','Roteiro','Resultados'],VW=[V1,V0,V2,V3];
+document.addEventListener('input',e=>{const i=e.target.id||'',k=i.slice(2),v=e.target.value;if(i.startsWith('f_'))F[k]=v;else if(i.startsWith('r_')&&k!=='id')R[k]=v;else if(i.startsWith('p_')&&k!=='id')P[k]=v});
+document.addEventListener('change',e=>{const i=e.target.id||'',v=e.target.value;if(i==='r_id'){R.id=v;const it=find(v);if(it)R.txt=it.script||'';draw()}else if(i==='p_id')P.id=v});
+function draw(){$('#n').innerHTML=TABS.map((t,i)=>`<button class="${i===tab?'on':''}" onclick="tab=${i};draw()">${t}</button>`).join('');try{$('#a').innerHTML=VW[tab]()}catch(e){$('#a').innerHTML='<div class="card bad">Erro: '+E(e.message)+'</div>'}}
 draw();
 </script></body></html>
-<script src="extra.js"></script>
-<script src="extra.js"></script>
-<script src="extra2.js"></script>
-<script src="extra3.js"></script>
-<script src="extra4.js"></script>
-<script src="extra5.js"></script>
-<script src="extra6.js"></script>
-<script src="extra7.js"></script>
