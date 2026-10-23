@@ -1,138 +1,1683 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Viral</title>
-<style>
-:root{--y:#FFD60A;--p:#161616;--l:#2e2e2e;--m:#a9a9a9}
-*{box-sizing:border-box}body{margin:0;background:#000;color:#fff;font:15px/1.5 system-ui,sans-serif}
-.tape{height:10px;background:repeating-linear-gradient(-45deg,var(--y) 0 14px,#000 14px 28px)}
-h1,h2,h3{font-family:'Arial Narrow','Roboto Condensed',Impact,sans-serif;margin:.3em 0}h1{font-size:26px;padding:6px 12px}
-nav{display:flex;gap:4px;padding:8px;position:sticky;top:0;background:#000;border-bottom:1px solid var(--l);z-index:5;overflow-x:auto}
-nav button{flex:1;white-space:nowrap;background:var(--p);color:#fff;border:1px solid var(--l);padding:10px 12px;border-radius:4px;font:inherit}
-nav .on{background:var(--y);color:#000;font-weight:700}
-main{max-width:760px;margin:auto;padding:12px}
-.card{background:var(--p);border-left:4px solid var(--y);padding:12px;margin:10px 0}
-.sc{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:13px}td,th{padding:6px 8px;border-bottom:1px solid var(--l);text-align:left;vertical-align:top}
-button.p{background:var(--y);color:#000;border:0;padding:10px 14px;font:inherit;font-weight:700;border-radius:4px;margin:4px 4px 4px 0}
-button.s{background:none;color:var(--y);border:1px solid var(--y);padding:8px 12px;font:inherit;border-radius:4px;margin:4px 4px 4px 0}
-input,textarea,select{width:100%;background:#000;color:#fff;border:1px solid #555;padding:9px;border-radius:4px;font:inherit;margin:4px 0}
-.k{color:var(--m);font-size:13px}.bad{color:#ff7b7b}.ok{color:#7ee787}.y{color:var(--y)}
-.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:6px}
-#t{position:fixed;bottom:12px;left:12px;right:12px;background:var(--y);color:#000;padding:10px;border-radius:4px;font-weight:700;display:none;z-index:9}
-a{color:var(--y)}:focus-visible{outline:2px solid var(--y);outline-offset:2px}
-</style></head><body>
-<div class="tape"></div><h1>Viral</h1><nav id="n"></nav><main id="a"></main><div id="t"></div>
-<script>
-const $=s=>document.querySelector(s),E=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const K='viral2';let D;try{D=JSON.parse(localStorage.getItem(K))}catch{}D=D&&Array.isArray(D.i)?D:{i:[]};
-function toast(m){const t=$('#t');t.textContent=m;t.style.display='block';clearTimeout(toast.x);toast.x=setTimeout(()=>t.style.display='none',4000)}
-const save=()=>{try{localStorage.setItem(K,JSON.stringify(D))}catch{toast('Não consegui salvar neste navegador.')}};
-const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,5),today=()=>new Date().toISOString().slice(0,10);
-const ageD=d=>(Date.now()-new Date(d+'T12:00:00'))/864e5,find=id=>D.i.find(x=>x.id===id);
-const med=a=>{a=a.filter(x=>x!=null).sort((x,y)=>x-y);if(!a.length)return null;const h=a.length>>1;return a.length%2?a[h]:(a[h-1]+a[h])/2};
-const num=s=>{const x=String(s??'').replace(/\s|%/g,'').replace(/\.(?=\d{3})/g,'').replace(',','.');if(x==='')return null;const n=+x;return isNaN(n)||n<0?null:n};
-const wd=t=>(String(t).toLowerCase().match(/[\p{L}\d]{4,}/gu)||[]);
-const copy=t=>navigator.clipboard?navigator.clipboard.writeText(t).then(()=>toast('Copiado.'),()=>toast('Não consegui copiar.')):toast('Copie manualmente.');
-const ST=['ideia','roteiro','gravado','publicado'],PL=['YouTube Shorts','Facebook Reels'];
-const FM=['Degraus crescentes (cada etapa mais forte)','Resultado só no final','Desafio com tempo ou limite','Antes e depois','Lista (X coisas)','Outro'];
-const VA=['Gancho (3 primeiros s)','Título','Capa ou primeiro frame','Meio (virada e ritmo)','Formato','Tema','Nada (primeiro teste)'];
-const opts=(a,s)=>a.map(x=>`<option${x===s?' selected':''}>${E(x)}</option>`).join('');
-const blank=()=>({t:'',th:'',cc:'',ng:'',fm:FM[0],va:VA[6]});
-let tab=0,F=blank(),R={id:'',txt:'',du:'30'},P={id:'',pl:PL[0],d:today(),du:'30'};
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Viral Radar</title>
+  <meta name="theme-color" content="#070707" />
+  <style>
+    :root{
+      --bg:#070707;
+      --panel:#111111;
+      --panel2:#161616;
+      --line:#2a2a2a;
+      --text:#f5f5f5;
+      --muted:#a7a7a7;
+      --accent:#ffd60a;
+      --accent2:#ffb703;
+      --good:#7ee787;
+      --warn:#ffb84d;
+      --bad:#ff7575;
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+      --r:18px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      background:
+        radial-gradient(circle at top, rgba(255,214,10,.06), transparent 35%),
+        linear-gradient(180deg,#0c0c0c 0%, #070707 38%, #050505 100%);
+      color:var(--text);
+      font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    a{color:inherit}
+    button,input,select,textarea{font:inherit}
+    .container{max-width:1240px;margin:0 auto;padding:16px}
+    .topbar{
+      display:flex;align-items:center;justify-content:space-between;gap:14px;
+      margin:8px 0 16px;
+    }
+    .brand{display:flex;flex-direction:column;gap:6px}
+    .badge{
+      display:inline-flex;align-items:center;gap:8px;
+      width:max-content;
+      background:rgba(255,214,10,.09);
+      color:var(--accent);
+      border:1px solid rgba(255,214,10,.22);
+      border-radius:999px;
+      padding:6px 10px;
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.02em;
+    }
+    h1{
+      margin:0;
+      font-size:clamp(30px, 5vw, 54px);
+      line-height:1.02;
+      letter-spacing:-.03em;
+    }
+    .subtitle{
+      margin:0;
+      color:var(--muted);
+      max-width:840px;
+      font-size:15px;
+    }
 
-/* 1. IDEIA: título, capa e promessa antes de produzir */
-const EXT=/sobrevi|nunca|pior|melhor|maior|menor|imposs[ií]vel|proibid|segredo|erro|ningu[eé]m|extrem|perigos|loucur|verdade|mentira|golpe|quebr|perdi|arrisc|absurd|bizarr|milh/i;
-function evT(f){const t=f.t.trim();if(!t)return null;const r=[],a=(ok,pt,y,n)=>r.push({ok,pt,m:ok?y:n});
-a(t.length>=18&&t.length<=60,1,`Tamanho bom (${t.length} caracteres).`,`Tamanho ${t.length}: use de 18 a 60 caracteres para ler no celular.`);
-a(EXT.test(t),2,'Tem termo extremo ou de risco.','Sem extremo. "Gastei 50 reais" perde para "Sobrevivi com 50 reais": vá ao extremo que você consegue entregar.');
-a(/\d/.test(t),1,'Tem número ou escala.','Sem número. Escala concreta (100, 24 horas, 1 milhão) ajuda o clique.');
-a(/\?|por que|porque|o que|ningu[eé]m|segredo|verdade|nunca/i.test(t),2,'Abre uma pergunta que só o vídeo responde.','Não abre curiosidade. Faça o espectador precisar do final para saber a resposta.');
-a(!/\b(dicas?|sobre|algumas?|coisas?|um pouco|geral)\b/i.test(t),1,'Título concreto.','Termo vago (dicas, sobre, coisas): troque por algo que dê para visualizar.');
-a(f.th.trim().length>3,1,'Capa ou primeiro frame definido.','Sem capa/primeiro frame: a expectativa do espectador fica solta.');
-a(f.cc.trim().length>3,1,'Componente crítico definido.','Qual é o componente crítico? Sem ele o título é mentira e o vídeo não existe.');
-a(f.ng.trim().length>3,1,'Riscos declarados.','Escreva o que pode dar errado. Falar só o lado bom esconde o problema até ser tarde.');
-return{s:r.reduce((s,x)=>s+(x.ok?x.pt:0),0),r}}
-const V0=()=>{const e=evT(F);let h=`<div class="card"><b>Ideia</b><p class="k">Só o título é obrigatório. Os campos opcionais melhoram a nota e o diagnóstico.</p>
-<input id="f_t" value="${E(F.t)}" placeholder="Título (a promessa)">
-<details${F.th||F.cc||F.ng?' open':''}><summary class="y">Opcional: capa, componente crítico, negativos, formato</summary><input id="f_th" value="${E(F.th)}" placeholder="Capa ou primeiro frame: o que aparece na tela?">
-<input id="f_cc" value="${E(F.cc)}" placeholder="Componente crítico: sem isso não existe vídeo">
-<input id="f_ng" value="${E(F.ng)}" placeholder="Negativos: por que isso pode dar errado?">
-<span class="k">Formato</span><select id="f_fm">${opts(FM,F.fm)}</select>
-<span class="k">Variável que este vídeo testa (mude uma por vez)</span><select id="f_va">${opts(VA,F.va)}</select></details>
-<button class="p" onclick="avaliar()">Avaliar</button><button class="p" onclick="addIdea()">Salvar na fila</button></div>`;
-if(e)h+=`<div class="card"><b class="y">Nota ${e.s}/10</b>${e.r.map(x=>`<div class="${x.ok?'ok':'bad'}">${x.ok?'✓':'✗'} ${E(x.m)}</div>`).join('')}</div>`;
-const l=D.i.slice().sort((a,b)=>b.c.localeCompare(a.c))[0];if(l&&l.fm===F.fm&&F.t.trim())h+=`<div class="card bad">Mesmo formato do último vídeo da fila. Formato repetido em sequência cansa: alterne.</div>`;return h};
-window.avaliar=()=>draw();
-window.addIdea=()=>{if(!F.t.trim())return toast('Escreva o título.');D.i.unshift({id:uid(),...F,t:F.t.trim(),c:new Date().toISOString(),status:'ideia',script:'',m:{}});save();F=blank();tab=0;draw();toast('Salvo na fila.')};
+    .hero{
+      background:
+        linear-gradient(180deg, rgba(255,214,10,.08), transparent 50%),
+        linear-gradient(180deg, #121212, #101010);
+      border:1px solid var(--line);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      padding:18px;
+      margin-bottom:14px;
+    }
+    .hero-grid{
+      display:grid;
+      grid-template-columns:1.2fr .8fr;
+      gap:14px;
+      align-items:start;
+      margin-top:14px;
+    }
+    .card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:22px;
+      box-shadow:var(--shadow);
+      padding:16px;
+    }
+    .search{
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:10px;
+    }
+    .search input{
+      width:100%;
+      background:#090909;
+      border:1px solid #2d2d2d;
+      color:var(--text);
+      border-radius:14px;
+      padding:15px 16px;
+      outline:none;
+    }
+    .search input:focus,.control:focus{
+      border-color:rgba(255,214,10,.62);
+      box-shadow:0 0 0 3px rgba(255,214,10,.12);
+    }
+    .btn{
+      border:0;
+      border-radius:14px;
+      padding:14px 18px;
+      font-weight:900;
+      cursor:pointer;
+      transition:.2s ease;
+      white-space:nowrap;
+    }
+    .btn:hover{transform:translateY(-1px);filter:brightness(1.03)}
+    .btn.primary{background:var(--accent);color:#111}
+    .btn.dark{background:#141414;color:var(--text);border:1px solid #2f2f2f}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,214,10,.28);color:var(--accent)}
+    .btn.small{padding:9px 12px;border-radius:12px;font-weight:800;font-size:13px}
 
-/* 2. ROTEIRO: tempo por trecho e regras de retenção */
-const TELL=/(vou (te )?(mostrar|contar|explicar)|neste v[ií]deo|nesse v[ií]deo|antes de come[cç]ar)/i,GREET=/^(oi|ol[aá]|fala|e a[ií]|bom dia|boa noite|hoje)\b/i,FILL=/\b(ent[aã]o|tipo|basicamente|na verdade|vamos l[aá]|enfim)\b/i;
-const END=/(obrigad|[eé] isso( a[ií])?|at[eé] a pr[oó]xima|tchau|nos vemos|espero que|inscreva)/i,TURN=/\?|\d|\b(mas|por[eé]m|s[oó] que|at[eé] que|de repente|ningu[eé]m|nunca)\b/i;
-function evR(txt,du,title){const L=txt.split('\n').map(x=>x.trim()).filter(Boolean);if(!L.length)return null;let c=0;
-const B=L.map(l=>{const n=l.split(/\s+/).length,s=n/2.5,o={l,n,a:c,b:c+s,f:[]};c+=s;return o}),T=c,g=[],b0=B[0];
-if(b0.n>14)b0.f.push('Gancho longo: o primeiro trecho tem que prender em ~5 s.');
-if(GREET.test(b0.l)||TELL.test(b0.l))b0.f.push('Abre com saudação ou aviso. Comece pela promessa ou pelo fato mais forte.');
-if(title&&!wd(title).some(w=>wd(B.slice(0,2).map(x=>x.l).join(' ')).includes(w)))g.push('Os primeiros trechos não retomam a promessa do título. Quebrou a expectativa, o espectador sai.');
-B.forEach(x=>{if(x.n>15)x.f.push('Trecho pesado (>6 s): divida ou troque a imagem.');if(x.a<10&&TELL.test(x.l)&&x!==b0)x.f.push('Está avisando em vez de mostrar. Mostre.');if(FILL.test(x.l))x.f.push('Enrolação: corte.')});
-if(B.length>=4&&!B.some(x=>x.a/T>=.35&&x.a/T<=.65&&TURN.test(x.l)))g.push('Sem virada perto da metade. Coloque aí o momento mais forte para reengajar.');
-const z=B[B.length-1];if(END.test(z.l))z.f.push('Despedida no fim. Termine abrupto, no resultado ou na revelação.');
-g.push(T>du?`Estoura ${(T-du).toFixed(0)} s. Corte ~${Math.ceil((T-du)*2.5)} palavras.`:`Cabe: ~${T.toFixed(0)} s de ${du} s.`);return{B,g,T}}
-function lk(it){const q=(R.q||'').trim()||(it?it.t:'');let h=`<div class="card"><b>Achar imagens e vídeos</b><p class="k">Escreva em português. Pexels, Pixabay e Google Imagens entendem português. Os outros funcionam melhor em inglês: use o link de tradução.</p><input id="r_q" value="${E(R.q||'')}" placeholder="Termo de busca (ex.: edição de vídeo com IA)"><button class="s" onclick="draw()">Gerar links</button>`;
-if(!q)return h+'<span class="k">Escolha uma ideia ou escreva o termo.</span></div>';
-const u=encodeURIComponent(q),L=[['Pexels (vídeos)',`https://www.pexels.com/pt-br/procurar/videos/${u}/`],['Pexels (fotos)',`https://www.pexels.com/pt-br/procurar/${u}/`],['Pixabay (vídeos)',`https://pixabay.com/pt/videos/search/${u}/`],['Pixabay (imagens)',`https://pixabay.com/pt/images/search/${u}/`],['Traduzir termo para inglês',`https://translate.google.com/?sl=pt&tl=en&text=${u}&op=translate`],['Unsplash (inglês)',`https://unsplash.com/s/photos/${u}`],['Mixkit (inglês)',`https://mixkit.co/free-stock-video/${u}/`],['Coverr (inglês)',`https://coverr.co/s?q=${u}`],['Wikimedia Commons',`https://commons.wikimedia.org/w/index.php?search=${u}&ns6=1`],['Google Imagens (uso comercial)',`https://www.google.com/search?tbm=isch&q=${u}&tbs=sur:fmc`]];
-return h+'<div>'+L.map(([n,l])=>`<a href="${l}" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none;margin:4px 4px 4px 0;padding:8px 12px;border:1px solid var(--y);border-radius:4px">${n}</a>`).join('')+'</div><p class="k">Grátis não é livre de regras: confira a licença de cada arquivo, evite rostos identificáveis e marcas, e dê crédito quando a licença pedir.</p></div>'}
-const V2=()=>{const q=D.i.filter(x=>x.status!=='publicado');let h=`<div class="card"><b>Roteiro</b><p class="k">Um trecho por linha. O app calcula o tempo (150 palavras por minuto) e aponta onde o espectador tende a sair.</p>
-<select id="r_id"><option value="">Escolha uma ideia da fila</option>${q.map(x=>`<option value="${x.id}"${x.id===R.id?' selected':''}>${E(x.t)}</option>`).join('')}</select>
-<span class="k">Duração (segundos)</span><select id="r_du">${opts(['15','20','30','45','60'],R.du)}</select>
-<textarea id="r_txt" rows="9" placeholder="Linha 1: gancho&#10;Linhas seguintes: fatos e viradas&#10;Última linha: resultado">${E(R.txt)}</textarea>
-<button class="p" onclick="draw()">Analisar</button><button class="s" onclick="saveR()">Salvar no vídeo</button></div>`;
-const it=find(R.id),e=evR(R.txt,+R.du,it?it.t:'');h+=lk(it);if(!e)return h;
-h+=`<div class="card"><b>Análise</b>${e.g.map(x=>`<div>• ${E(x)}</div>`).join('')}</div><div class="card sc"><table><tr><th>Tempo</th><th>Trecho</th><th>Alerta</th></tr>${e.B.map(x=>`<tr><td>${x.a.toFixed(0)}–${x.b.toFixed(0)} s</td><td>${E(x.l)}</td><td class="bad">${E(x.f.join(' '))||'<span class="ok">ok</span>'}</td></tr>`).join('')}</table></div><button class="s" onclick="cpR()">Copiar com tempos</button>`;return h};
-window.saveR=()=>{const it=find(R.id);if(!it)return toast('Escolha uma ideia da fila.');it.script=R.txt;if(it.status==='ideia')it.status='roteiro';save();toast('Roteiro salvo.')};
-window.cpR=()=>{const e=evR(R.txt,+R.du,'');if(e)copy(e.B.map(x=>`[${x.a.toFixed(0)}-${x.b.toFixed(0)} s] ${x.l}`).join('\n'))};
+    .controls{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:10px;
+      margin-top:12px;
+    }
+    .control{
+      width:100%;
+      background:#090909;
+      border:1px solid #2d2d2d;
+      border-radius:12px;
+      padding:12px 14px;
+      color:var(--text);
+      outline:none;
+    }
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .chip{
+      border:1px solid #2b2b2b;
+      background:#0b0b0b;
+      color:#ddd;
+      border-radius:999px;
+      padding:8px 12px;
+      cursor:pointer;
+    }
+    .chip:hover{border-color:rgba(255,214,10,.4);color:var(--accent)}
+    .mini-note{color:var(--muted);font-size:13px;margin:8px 0 0}
 
-/* 3. RESULTADOS: nota x/10 contra os 9 anteriores e diagnóstico */
-function nota(it){const p=D.i.filter(x=>x.status==='publicado'&&x.id!==it.id&&x.pl===it.pl&&x.m.v48!=null&&x.pd<=it.pd).sort((a,b)=>b.pd.localeCompare(a.pd)).slice(0,9);return{r:1+p.filter(x=>x.m.v48>it.m.v48).length,n:p.length+1}}
-function diag(it){if(it.m.v48==null)return null;const B=D.i.filter(x=>x.status==='publicado'&&x.m.v48!=null&&x.id!==it.id);
-if(B.length<3)return{t:`Base pequena: faltam ${3-B.length} vídeo(s) medidos para comparar. Sem comparação, qualquer leitura é palpite.`};
-const mv=med(B.map(x=>x.m.v48)),ms=med(B.map(x=>x.m.st)),ma=med(B.map(x=>x.m.ap)),m=it.m;
-if(m.st==null&&m.ap==null)return{t:'Preencha "% que ficou" e "% assistido" para diagnosticar.'};
-if(m.st!=null&&ms!=null&&m.st<ms-5)return{t:'Perde gente logo no início (viram e deslizaram). O problema está no gancho, título ou capa. Reescreva só o gancho.',v:VA[0]};
-if(m.ap!=null&&ma!=null&&m.ap<ma-5)return{t:'Entra bem, mas sai no meio. Tem enrolação ou falta virada perto de 50%. Corte e reforce o meio.',v:VA[3]};
-if(m.v48<mv)return{t:'Retenção normal, entrega baixa: tema, título ou capa não despertou clique. Mantenha o roteiro e teste outro título.',v:VA[1]};
-return{t:'Acima da sua mediana, sem queda clara. Repita o formato e mude UMA variável (o tema) para saber a causa.',v:VA[5]}}
-const V3=()=>{const q=D.i.filter(x=>x.status!=='publicado');let h=`<div class="card"><b>Publicar</b><select id="p_id"><option value="">Escolha um vídeo da fila</option>${q.map(x=>`<option value="${x.id}"${x.id===P.id?' selected':''}>${E(x.t)}</option>`).join('')}</select>
-<div class="g"><select id="p_pl">${opts(PL,P.pl)}</select><input id="p_d" type="date" value="${P.d}"><input id="p_du" inputmode="numeric" value="${E(P.du)}" placeholder="Duração (s)"></div><button class="p" onclick="pub()">Marcar como publicado</button></div>`;
-const L=D.i.filter(x=>x.status==='publicado').sort((a,b)=>b.pd.localeCompare(a.pd));
-h+=L.map(x=>{const n=x.m.v48!=null?nota(x):null,d=diag(x),f=(k,l,md)=>`<div><span class="k">${l}</span><input id="m_${x.id}_${k}" inputmode="${md}" value="${E(x.m[k]??'')}"></div>`;
-return`<div class="card"><b>${E(x.t)}</b><br><span class="k">${x.pd.split('-').reverse().join('/')} · ${E(x.pl)} · testou: ${E(x.va)}${n?` · nota <b class="y">${n.r}/${n.n>=10?10:n.n}</b>${n.n<10?' (base pequena)':''}`:''}</span>
-<div class="g">${f('v48','Views em 48 h','numeric')}${f('st','% que ficou (não deslizou)','decimal')}${f('ap','% assistido médio','decimal')}${f('v7','Views em 7 dias','numeric')}</div>
-<button class="p" onclick="saveM('${x.id}')">Salvar métricas</button><button class="s" onclick="del('${x.id}')">Remover</button>${d?`<div class="y">${E(d.t)}</div>${d.v?`<div class="k">Próxima variável a testar: ${E(d.v)}.</div>`:''}`:''}</div>`}).join('');
-return h+(L.length?'<p class="k">Onde achar: YouTube Studio > Análises > Conteúdo; Facebook > Insights. Padrões com menos de 5 vídeos são hipótese, não causa.</p>':'')};
-window.pub=()=>{const it=find(P.id);if(!it)return toast('Escolha um vídeo da fila.');Object.assign(it,{status:'publicado',pl:P.pl,pd:P.d||today(),du:num(P.du)});save();P.id='';draw()};
-window.saveM=id=>{const it=find(id),g=k=>num($('#m_'+id+'_'+k).value);if(!it)return;const st=g('st'),ap=g('ap');if((st!=null&&st>100)||(ap!=null&&ap>100))return toast('Percentuais ficam entre 0 e 100.');it.m={v48:g('v48'),st,ap,v7:g('v7')};save();toast('Métricas salvas.');draw()};
-window.del=id=>{if(confirm('Remover este vídeo?')){D.i=D.i.filter(x=>x.id!==id);save();draw()}};
+    .settings-grid{
+      display:grid;
+      gap:10px;
+    }
+    .settings-grid label{
+      display:block;
+      color:var(--muted);
+      font-size:12px;
+      margin-bottom:6px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+    .settings-grid input{
+      width:100%;
+      background:#090909;
+      border:1px solid #2d2d2d;
+      color:var(--text);
+      border-radius:12px;
+      padding:12px 14px;
+      outline:none;
+    }
 
-/* 0. HOJE */
-function prox(A,M){const x=A.find(i=>i.status==='roteiro'||i.status==='gravado'),n=A.find(i=>i.status==='ideia');let t,b;
-if(M.length){t='Anote os números de "'+M[0].t+'" (já passaram 48 h).';b='<button class="p" onclick="tab=3;draw()">Anotar números</button>'}
-else if(x){t='Produza e publique "'+x.t+'", depois marque como publicado.';b=`<button class="p" onclick="P.id='${x.id}';tab=3;draw()">Publicar</button>`}
-else if(n){t='Escreva o roteiro de "'+n.t+'".';b=`<button class="p" onclick="R={id:'${n.id}',txt:'',du:R.du};tab=2;draw()">Escrever roteiro</button>`}
-else{t='Escreva o título do seu primeiro vídeo. Só isso.';b='<button class="p" onclick="tab=1;draw()">Cadastrar ideia</button>'}
-return`<div class="card"><b class="y">Próximo passo</b><br>${E(t)}<br>${b}</div>`}
-const V1=()=>{const A=D.i.filter(x=>x.status!=='publicado'),M=D.i.filter(x=>x.status==='publicado'&&x.m.v48==null&&ageD(x.pd)>=2);
-const last=D.i.filter(x=>x.status==='publicado'&&x.m.v48!=null).sort((a,b)=>b.pd.localeCompare(a.pd))[0],d=last&&diag(last);
-let h=prox(A,M);if(M.length)h+=`<div class="card"><b class="y">Medir agora (48 h já passaram)</b>${M.map(x=>`<div>• ${E(x.t)}</div>`).join('')}<button class="s" onclick="tab=3;draw()">Anotar números</button></div>`;
-if(d)h+=`<div class="card"><b>Última leitura</b><br>${E(last.t)}<br>${E(d.t)}${d.v?`<br><span class="k">Próximo teste: mude só isto: ${E(d.v)}.</span>`:''}</div>`;
-if(A.length<3)h+=`<div class="card bad">${A.length} ideia(s) em andamento. Com menos de 3 você publica no improviso. Tenha sempre vários vídeos em fases diferentes.</div>`;
-h+=`<div class="card"><b>Em andamento</b>${A.length?'':'<br><span class="k">Nada ainda. Comece pela aba Ideia.</span>'}</div>`;
-h+=A.map(x=>`<div class="card"><b>${E(x.t)}</b><br><span class="k">${E(x.fm)} · testa: ${E(x.va)}</span>${x.cc?`<br><span class="k">Crítico: ${E(x.cc)}</span>`:''}<select onchange="setSt('${x.id}',this.value)">${opts(ST.slice(0,3),x.status)}</select><button class="s" onclick="R={id:'${x.id}',txt:find('${x.id}').script||'',du:R.du};tab=2;draw()">Roteiro</button><button class="s" onclick="P.id='${x.id}';tab=3;draw()">Publicar</button><button class="s" onclick="del('${x.id}')">Apagar</button></div>`).join('');
-return h+`<div class="card"><b>Backup</b><p class="k">Os dados ficam só neste navegador. Limpar o navegador apaga tudo.</p><button class="s" onclick="bk()">Exportar</button><input id="imp" type="file" accept=".json" onchange="im(this)"></div>`};
-window.setSt=(id,s)=>{const it=find(id);if(it){it.status=s;save()}};
-window.bk=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(D)],{type:'application/json'}));a.download='viral-backup-'+today()+'.json';a.click()};
-window.im=el=>{const f=el.files[0];if(!f)return;f.text().then(t=>{const j=JSON.parse(t);if(!Array.isArray(j.i))throw 0;D=j;save();draw();toast('Backup importado.')}).catch(()=>toast('Arquivo inválido.'))};
+    .kpis{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:12px;
+      margin:16px 0;
+    }
+    .kpi{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:16px;
+    }
+    .kpi .label{
+      color:var(--muted);
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+    .kpi .value{
+      font-size:clamp(22px,3vw,34px);
+      font-weight:900;
+      margin-top:5px;
+      line-height:1.1;
+    }
+    .kpi .desc{
+      color:var(--muted);
+      font-size:13px;
+      margin-top:4px;
+    }
 
-/* base */
-const TABS=['Hoje','Ideia','Roteiro','Resultados'],VW=[V1,V0,V2,V3];
-document.addEventListener('input',e=>{const i=e.target.id||'',k=i.slice(2),v=e.target.value;if(i.startsWith('f_'))F[k]=v;else if(i.startsWith('r_')&&k!=='id')R[k]=v;else if(i.startsWith('p_')&&k!=='id')P[k]=v});
-document.addEventListener('change',e=>{const i=e.target.id||'',v=e.target.value;if(i==='r_id'){R.id=v;const it=find(v);if(it)R.txt=it.script||'';draw()}else if(i==='p_id')P.id=v});
-function draw(){$('#n').innerHTML=TABS.map((t,i)=>`<button class="${i===tab?'on':''}" onclick="tab=${i};draw()">${t}</button>`).join('');try{$('#a').innerHTML=VW[tab]()}catch(e){$('#a').innerHTML='<div class="card bad">Erro: '+E(e.message)+'</div>'}}
-draw();
-</script></body></html>
+    .nav{
+      position:sticky;
+      top:0;
+      z-index:10;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      padding:10px 0 12px;
+      background:linear-gradient(180deg, rgba(7,7,7,.98), rgba(7,7,7,.92));
+      backdrop-filter:blur(8px);
+    }
+    .nav a{
+      text-decoration:none;
+      border:1px solid #2a2a2a;
+      background:#0b0b0b;
+      border-radius:999px;
+      padding:9px 13px;
+      font-weight:800;
+      font-size:13px;
+      color:#ddd;
+    }
+    .nav a:hover{border-color:rgba(255,214,10,.5);color:var(--accent)}
+    .section{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:24px;
+      box-shadow:var(--shadow);
+      padding:18px;
+      margin-bottom:16px;
+    }
+    .section h2{
+      margin:0 0 12px;
+      font-size:22px;
+      letter-spacing:-.02em;
+    }
+    .section p.section-sub{
+      margin:0 0 16px;
+      color:var(--muted);
+    }
+
+    .banner{
+      border:1px solid rgba(255,214,10,.22);
+      background:rgba(255,214,10,.07);
+      color:#fff;
+      border-radius:16px;
+      padding:12px 14px;
+      margin-bottom:14px;
+    }
+    .banner.good{border-color:rgba(126,231,135,.3);background:rgba(126,231,135,.08)}
+    .banner.bad{border-color:rgba(255,117,117,.3);background:rgba(255,117,117,.08)}
+    .banner.warn{border-color:rgba(255,184,77,.3);background:rgba(255,184,77,.08)}
+
+    .grid{display:grid;gap:14px}
+    .two{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .three{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .four{grid-template-columns:repeat(4,minmax(0,1fr))}
+
+    .video-card{
+      display:grid;
+      grid-template-columns:190px 1fr;
+      gap:14px;
+      background:#0c0c0c;
+      border:1px solid #242424;
+      border-radius:18px;
+      overflow:hidden;
+    }
+    .video-card img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      aspect-ratio:16/9;
+      background:#111;
+    }
+    .video-body{padding:14px 14px 14px 0}
+    .video-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+    .video-title{
+      margin:0;
+      font-size:18px;
+      line-height:1.2;
+      letter-spacing:-.02em;
+    }
+    .video-channel{color:var(--muted);margin:4px 0 0;font-size:13px}
+    .meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:10px;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      border:1px solid #2b2b2b;
+      background:#101010;
+      color:#ddd;
+      border-radius:999px;
+      padding:5px 10px;
+      font-size:12px;
+      font-weight:700;
+    }
+    .pill.good{border-color:rgba(126,231,135,.25); color:var(--good)}
+    .pill.warn{border-color:rgba(255,184,77,.25); color:var(--warn)}
+    .pill.bad{border-color:rgba(255,117,117,.25); color:var(--bad)}
+    .video-stats{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:8px 12px;
+      margin-top:12px;
+      color:#d8d8d8;
+      font-size:13px;
+    }
+    .video-actions{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
+
+    .op-card{
+      background:#0c0c0c;
+      border:1px solid #242424;
+      border-radius:18px;
+      padding:14px;
+    }
+    .op-card h3{margin:0;font-size:18px}
+    .op-card .why{color:var(--muted);margin:8px 0 10px}
+    .op-card ul{margin:8px 0 0 18px;color:#ddd}
+    .op-card li{margin:4px 0}
+
+    .tag-cloud{display:flex;flex-wrap:wrap;gap:8px}
+    .tag{
+      border:1px solid #2b2b2b;
+      background:#0c0c0c;
+      border-radius:999px;
+      padding:7px 10px;
+      font-size:13px;
+      color:#e8e8e8;
+    }
+    .tag strong{color:var(--accent)}
+    .pattern-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    .pattern-box{
+      background:#0c0c0c;
+      border:1px solid #242424;
+      border-radius:18px;
+      padding:14px;
+    }
+    .pattern-box h3{margin:0 0 10px}
+    .pattern-list{display:grid;gap:8px}
+    .pattern-item{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      border:1px solid #262626;
+      background:#101010;
+      border-radius:14px;
+      padding:10px 12px;
+    }
+    .pattern-item .muted{color:var(--muted);font-size:13px}
+
+    .chart-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    .chart{
+      background:#0c0c0c;
+      border:1px solid #242424;
+      border-radius:18px;
+      padding:14px;
+    }
+    .chart h3{margin:0 0 10px;font-size:16px}
+    .bar-row{
+      display:grid;
+      grid-template-columns:130px 1fr 54px;
+      gap:8px;
+      align-items:center;
+      margin:9px 0;
+      font-size:13px;
+    }
+    .bar{
+      height:10px;
+      border-radius:999px;
+      background:#1d1d1d;
+      overflow:hidden;
+    }
+    .bar i{
+      display:block;
+      height:100%;
+      border-radius:999px;
+      background:linear-gradient(90deg, var(--accent), var(--accent2));
+    }
+    .hint{color:var(--muted);font-size:13px}
+
+    .history-item{
+      background:#0c0c0c;
+      border:1px solid #242424;
+      border-radius:18px;
+      padding:14px;
+    }
+    .history-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap}
+    .history-item h3{margin:0;font-size:17px}
+    .history-meta{color:var(--muted);font-size:13px;margin-top:4px}
+    .history-comparison{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:12px;
+      margin-bottom:14px;
+    }
+    .compare{
+      background:#0c0c0c;
+      border:1px solid #242424;
+      border-radius:18px;
+      padding:14px;
+    }
+    .compare .big{font-size:22px;font-weight:900}
+    .compare .small{color:var(--muted);font-size:13px}
+
+    .idea-form{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+    }
+    .idea-form input,.idea-form textarea,.idea-form select{
+      width:100%;
+      background:#090909;
+      border:1px solid #2d2d2d;
+      color:var(--text);
+      border-radius:12px;
+      padding:12px 14px;
+      outline:none;
+    }
+    .idea-form textarea{min-height:118px;resize:vertical;grid-column:1/-1}
+    .idea-list{display:grid;gap:12px;margin-top:14px}
+    .idea-item{
+      background:#0c0c0c;
+      border:1px solid #242424;
+      border-radius:18px;
+      padding:14px;
+    }
+    .idea-item h3{margin:0 0 6px}
+    .idea-item .meta{margin-top:8px}
+    .idea-item .actions{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+
+    .empty{
+      border:1px dashed #383838;
+      background:#0b0b0b;
+      color:var(--muted);
+      border-radius:18px;
+      padding:18px;
+      text-align:center;
+    }
+
+    .toast{
+      position:fixed;
+      left:12px;
+      right:12px;
+      bottom:12px;
+      background:var(--accent);
+      color:#111;
+      border-radius:14px;
+      padding:12px 14px;
+      font-weight:900;
+      display:none;
+      z-index:999;
+      box-shadow:var(--shadow);
+    }
+
+    @media (max-width: 980px){
+      .hero-grid,.two,.three,.four,.chart-grid,.pattern-grid,.history-comparison,.kpis,.video-card,.controls{
+        grid-template-columns:1fr;
+      }
+      .video-body{padding:14px}
+      .search{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="topbar">
+      <div class="brand">
+        <div class="badge">VIRAL RADAR</div>
+        <h1>Descubra o que está crescendo no YouTube antes de escolher seu próximo vídeo.</h1>
+        <p class="subtitle">
+          Analise nichos, identifique vídeos em aceleração, encontre padrões repetidos e transforme sinais de tendência em oportunidades editoriais originais.
+        </p>
+      </div>
+    </div>
+
+    <section class="hero">
+      <div class="hero-grid">
+        <div>
+          <form id="searchForm" class="search" autocomplete="off">
+            <input id="query" type="text" placeholder="Digite um nicho ou assunto" />
+            <button class="btn primary" type="submit">ANALISAR YOUTUBE</button>
+          </form>
+
+          <div class="controls">
+            <select id="country" class="control" aria-label="País">
+              <option value="BR">Brasil</option>
+              <option value="PT">Portugal</option>
+              <option value="US">EUA</option>
+              <option value="">Global</option>
+            </select>
+            <select id="period" class="control" aria-label="Período">
+              <option value="24h">Últimas 24 horas</option>
+              <option value="7d" selected>7 dias</option>
+              <option value="30d">30 dias</option>
+            </select>
+            <select id="type" class="control" aria-label="Tipo">
+              <option value="all">Todos</option>
+              <option value="shorts">Shorts</option>
+              <option value="long">Vídeos longos</option>
+            </select>
+            <input id="apiBase" class="control" placeholder="Endpoint do backend (opcional)" />
+          </div>
+
+          <div class="row" style="margin-top:12px">
+            <button id="saveApi" class="btn dark small" type="button">Salvar endpoint</button>
+            <button id="clearApi" class="btn ghost small" type="button">Usar modo automático</button>
+          </div>
+
+          <div class="chips" id="examples"></div>
+          <p class="mini-note">Exemplos: true crime, transtorno bipolar, culinária, beleza, tecnologia, histórias bíblicas, restauração, finanças.</p>
+        </div>
+
+        <div class="card">
+          <strong style="display:block;margin-bottom:10px">Configuração segura</strong>
+          <div class="settings-grid">
+            <div>
+              <label>Backend / Serverless</label>
+              <input id="backendInfo" type="text" value="Use um backend para proteger sua chave do YouTube" readonly />
+            </div>
+            <div>
+              <label>O que este MVP já faz</label>
+              <input type="text" value="Busca, score, tendência, oportunidades, padrões, histórico e estúdio" readonly />
+            </div>
+            <div>
+              <label>Observação</label>
+              <input type="text" value="Se o backend não estiver configurado, o app entra em modo demo" readonly />
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="kpis" id="kpis"></div>
+
+    <nav class="nav">
+      <a href="#radar">Radar</a>
+      <a href="#opportunities">Oportunidades</a>
+      <a href="#patterns">Padrões</a>
+      <a href="#charts">Gráficos</a>
+      <a href="#history">Histórico</a>
+      <a href="#studio">Estúdio</a>
+    </nav>
+
+    <section class="section" id="radar">
+      <h2>🔥 Viralizando Agora</h2>
+      <p class="section-sub">Vídeos com potencial de tendência, priorizando velocidade de visualização, recência e engajamento.</p>
+      <div id="statusBanner" class="banner" style="display:none"></div>
+      <div id="viralNow" class="grid"></div>
+    </section>
+
+    <section class="section">
+      <h2>📈 Subindo</h2>
+      <p class="section-sub">Vídeos com sinais de crescimento forte, mesmo sem números gigantescos.</p>
+      <div id="rising" class="grid"></div>
+    </section>
+
+    <section class="section" id="opportunities">
+      <h2>💡 Oportunidades</h2>
+      <p class="section-sub">Tendências detectadas a partir de recorrência de títulos, canais diferentes e desempenho acima do esperado.</p>
+      <div id="opportunityList" class="grid"></div>
+    </section>
+
+    <section class="section" id="patterns">
+      <h2>🧠 Padrões que estão funcionando</h2>
+      <p class="section-sub">Palavras mais frequentes, termos de curiosidade, estruturas de título e tamanho médio dos títulos.</p>
+      <div class="pattern-grid">
+        <div class="pattern-box">
+          <h3>Palavras mais frequentes</h3>
+          <div id="wordsCloud" class="tag-cloud"></div>
+        </div>
+        <div class="pattern-box">
+          <h3>Termos de curiosidade</h3>
+          <div id="curiosityCloud" class="tag-cloud"></div>
+        </div>
+        <div class="pattern-box">
+          <h3>Estruturas de título</h3>
+          <div id="structureList" class="pattern-list"></div>
+        </div>
+        <div class="pattern-box">
+          <h3>Resumo editorial</h3>
+          <div id="editorialSummary" class="pattern-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="charts">
+      <h2>📊 Gráficos úteis</h2>
+      <p class="section-sub">Visualizações para decidir rápido: velocidade, distribuição de score e temas frequentes.</p>
+      <div id="chartsGrid" class="chart-grid"></div>
+    </section>
+
+    <section class="section" id="history">
+      <h2>📁 Histórico de análises</h2>
+      <p class="section-sub">Salva nicho, filtros, vídeos analisados, tendências detectadas e score médio.</p>
+      <div id="compareGrid" class="history-comparison"></div>
+      <div id="historyList" class="grid"></div>
+    </section>
+
+    <section class="section" id="studio">
+      <h2>✍️ Estúdio rápido</h2>
+      <p class="section-sub">Preserva o fluxo editorial do projeto atual: salvar ideias, montar roteiros e manter o trabalho organizado.</p>
+
+      <div class="idea-form">
+        <input id="ideaTitle" placeholder="Título da ideia original" />
+        <input id="ideaAngle" placeholder="Ângulo / abordagem" />
+        <input id="ideaHook" placeholder="Hook / gancho" />
+        <select id="ideaFormat">
+          <option value="Short">Short</option>
+          <option value="5 min">Vídeo de 5 minutos</option>
+          <option value="10 min" selected>Vídeo de 10 minutos</option>
+          <option value="15 min">Vídeo de 15 minutos</option>
+          <option value="20 min">Vídeo de 20 minutos</option>
+        </select>
+        <textarea id="ideaWhy" placeholder="Por que pode funcionar?"></textarea>
+        <button id="saveIdea" class="btn primary" type="button">Salvar ideia</button>
+        <button id="generateIdeas" class="btn dark" type="button">Gerar 10 ideias originais a partir da análise atual</button>
+      </div>
+
+      <div style="margin-top:14px" class="idea-form">
+        <select id="scriptDuration">
+          <option value="Short">Short</option>
+          <option value="5 min">Vídeo de 5 minutos</option>
+          <option value="10 min" selected>Vídeo de 10 minutos</option>
+          <option value="15 min">Vídeo de 15 minutos</option>
+          <option value="20 min">Vídeo de 20 minutos</option>
+        </select>
+        <button id="copyScript" class="btn ghost" type="button">Copiar roteiro</button>
+        <textarea id="scriptText" placeholder="Gerar ou colar um roteiro aqui..."></textarea>
+      </div>
+
+      <div id="ideaList" class="idea-list"></div>
+    </section>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const STORAGE_KEY = 'viral-radar-storage-v1';
+    const DEFAULT_API_BASE = '/api';
+    const $ = (s) => document.querySelector(s);
+    const $$ = (s) => [...document.querySelectorAll(s)];
+
+    const STOPWORDS = new Set([
+      'a','à','ao','aos','as','o','os','e','de','do','da','dos','das','em','no','na','nos','nas','para','por','com','sem','um','uma','uns','umas',
+      'que','se','ser','ter','há','mais','menos','muito','muitos','muita','muitas','já','não','sim','ou','como','sobre','pra','pro',
+      'the','and','for','with','from','this','that','what','why','how','when','who','of','to','in','on','at','is','are','was','were'
+    ]);
+
+    const CURIOUS_REGEX = [
+      { label:'Pergunta', test:(s)=>/\?/.test(s) || /\b(o que|por que|porque|como|ser[aá] que|quem|quando)\b/i.test(s) },
+      { label:'Número/escala', test:(s)=>/\d/.test(s) },
+      { label:'Curiosidade', test:(s)=>/\b(ningu[eé]m|segredo|mist[eé]rio|revela|descobre|sumiu|desaparec|o que ninguém)\b/i.test(s) },
+      { label:'Contraste', test:(s)=>/\b(antes e depois|mudou tudo|antes de|depois de|virou|agora)\b/i.test(s) },
+      { label:'Linha do tempo', test:(s)=>/\b(hoje|agora|ontem|há \d+|em \d+ dias|em \d+ horas)\b/i.test(s) },
+      { label:'Caso / investigação', test:(s)=>/\b(caso|investiga|investigação|prova|documento|explica|entenda)\b/i.test(s) },
+    ];
+
+    const state = {
+      history: loadJSON('vr_history', []),
+      ideas: loadJSON('vr_ideas', []),
+      current: null
+    };
+
+    function loadJSON(key, fallback){
+      try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
+      catch { return fallback; }
+    }
+    function saveJSON(key, value){ localStorage.setItem(key, JSON.stringify(value)); }
+
+    function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+
+    function toast(msg){
+      const el = $('#toast');
+      el.textContent = msg;
+      el.style.display = 'block';
+      clearTimeout(toast.t);
+      toast.t = setTimeout(()=>{ el.style.display = 'none'; }, 3200);
+    }
+
+    function escapeHtml(s){
+      return String(s ?? '').replace(/[&<>"']/g, c => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      }[c]));
+    }
+
+    function formatNumber(n){
+      return new Intl.NumberFormat('pt-BR').format(Math.round(Number(n || 0)));
+    }
+
+    function clamp(n, min, max){ return Math.max(min, Math.min(max, n)); }
+
+    function normalizeText(s){
+      return String(s || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '');
+    }
+
+    function tokenize(s){
+      return normalizeText(s)
+        .match(/[a-z0-9]+/g)
+        ?.filter(w => w.length >= 3 && !STOPWORDS.has(w)) || [];
+    }
+
+    function uniq(arr){ return [...new Set(arr)]; }
+
+    function median(arr){
+      const a = arr.filter(n => Number.isFinite(n)).slice().sort((x,y)=>x-y);
+      if (!a.length) return 0;
+      const mid = Math.floor(a.length / 2);
+      return a.length % 2 ? a[mid] : (a[mid - 1] + a[mid]) / 2;
+    }
+
+    function avg(arr){
+      const a = arr.filter(n => Number.isFinite(n));
+      if (!a.length) return 0;
+      return a.reduce((s,n)=>s+n,0) / a.length;
+    }
+
+    function ageHours(iso){
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return 0;
+      return Math.max((Date.now() - d.getTime()) / 36e5, 0.01);
+    }
+
+    function ageLabel(iso){
+      const h = ageHours(iso);
+      if (h < 1) return `${Math.max(1, Math.round(h * 60))} min`;
+      if (h < 24) return `${Math.round(h)} h`;
+      if (h < 24 * 30) return `${Math.round(h / 24)} dias`;
+      return `${Math.round(h / 24 / 30)} meses`;
+    }
+
+    function formatDate(iso){
+      const d = new Date(iso);
+      if (Number.isNaN(d.getTime())) return '—';
+      return new Intl.DateTimeFormat('pt-BR', { dateStyle:'short', timeStyle:'short' }).format(d);
+    }
+
+    function parseDuration(iso){
+      if (!iso) return 0;
+      const m = String(iso).match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/i);
+      return ((+m?.[1] || 0) * 3600) + ((+m?.[2] || 0) * 60) + (+m?.[3] || 0);
+    }
+
+    function formatDuration(sec){
+      sec = Math.max(0, Math.round(Number(sec || 0)));
+      if (!sec) return '—';
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = sec % 60;
+      return h ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${m}:${String(s).padStart(2,'0')}`;
+    }
+
+    function rankScores(values, desc = true){
+      const items = values.map((v,i)=>({ v, i }));
+      items.sort((a,b) => desc ? (b.v - a.v) : (a.v - b.v));
+      const out = new Array(values.length).fill(0);
+      const n = Math.max(values.length - 1, 1);
+      items.forEach((item, rank) => out[item.i] = 1 - (rank / n));
+      return out;
+    }
+
+    function periodToISO(period){
+      const map = { '24h': 24*60*60*1000, '7d': 7*24*60*60*1000, '30d': 30*24*60*60*1000 };
+      const ms = map[period] || map['7d'];
+      return new Date(Date.now() - ms).toISOString();
+    }
+
+    function getApiBase(){
+      const custom = (localStorage.getItem('vr_api_base') || '').trim();
+      return custom || DEFAULT_API_BASE;
+    }
+
+    function scoreClass(score){
+      if (score >= 80) return 'good';
+      if (score >= 60) return 'warn';
+      return 'bad';
+    }
+
+    function shorten(s, n = 46){
+      s = String(s || '');
+      return s.length > n ? s.slice(0, n - 1) + '…' : s;
+    }
+
+    function isDemoFallbackError(err){
+      const m = String(err?.message || err || '').toLowerCase();
+      return m.includes('failed to fetch') || m.includes('network') || m.includes('endpoint') || m.includes('api');
+    }
+
+    function mapYouTubeError(status, payload){
+      const reason = payload?.error?.errors?.[0]?.reason || '';
+      const message = payload?.error?.message || '';
+      if (status === 401) return 'A chave do YouTube não está configurada corretamente no backend.';
+      if (status === 403 && /quota|forbidden/i.test(reason + ' ' + message)) return 'Limite de quota da YouTube Data API atingido.';
+      if (status === 400) return 'Consulta inválida. Verifique o termo pesquisado e os filtros.';
+      if (status === 404) return 'Endpoint do backend não encontrado.';
+      return message || 'Serviço de busca indisponível no momento.';
+    }
+
+    function demoVideos(query, filters){
+      const q = query.trim() || 'o tema';
+      const now = Date.now();
+      const data = [
+        { title:`O que está acontecendo com ${q} agora?`, channelTitle:'Radar News', viewCount: 182000, likes: 9200, comments: 1800, hours: 19, dur:'PT12M41S', sub: 98000 },
+        { title:`3 sinais de que ${q} começou a crescer`, channelTitle:'Insight BR', viewCount: 108000, likes: 5100, comments: 920, hours: 14, dur:'PT6M12S', sub: 54000 },
+        { title:`${q}: o caso que ninguém esperava`, channelTitle:'Ponto de Virada', viewCount: 265000, likes: 13600, comments: 2700, hours: 28, dur:'PT18M08S', sub: 221000 },
+        { title:`Como ${q} virou assunto repetido`, channelTitle:'Análise Viral', viewCount: 92000, likes: 3400, comments: 640, hours: 9, dur:'PT9M24S', sub: 34000 },
+        { title:`${q} em 24 horas: o detalhe que mudou tudo`, channelTitle:'Zona de Crescimento', viewCount: 156000, likes: 7800, comments: 1100, hours: 21, dur:'PT11M05S', sub: 76000 },
+        { title:`Por que todo mundo está falando de ${q}?`, channelTitle:'Radar Hoje', viewCount: 74000, likes: 2200, comments: 540, hours: 7, dur:'PT5M58S', sub: 19000 },
+        { title:`A verdade sobre ${q} que apareceu nos comentários`, channelTitle:'Contexto Real', viewCount: 88000, likes: 3900, comments: 880, hours: 12, dur:'PT14M19S', sub: 41000 },
+        { title:`${q} explicado em poucos minutos`, channelTitle:'Clareza Digital', viewCount: 62000, likes: 1800, comments: 310, hours: 6, dur:'PT4M35S', sub: 24000 }
+      ];
+      return data.map((x, i) => ({
+        id: 'demo-' + i,
+        title: x.title,
+        channelTitle: x.channelTitle,
+        channelId: 'demo-channel-' + i,
+        publishedAt: new Date(now - x.hours * 36e5).toISOString(),
+        duration: x.dur,
+        viewCount: x.viewCount,
+        likeCount: x.likes,
+        commentCount: x.comments,
+        thumbnail: `https://picsum.photos/seed/${encodeURIComponent(q + i)}/640/360`,
+        url: 'https://www.youtube.com/',
+        channelSubscriberCount: x.sub
+      }));
+    }
+
+    async function searchYouTube(query, filters){
+      const apiBase = getApiBase().replace(/\/$/, '');
+      const params = new URLSearchParams({
+        q: query,
+        regionCode: filters.country || 'BR',
+        relevanceLanguage: 'pt',
+        maxResults: '25',
+        order: 'viewCount',
+        publishedAfter: periodToISO(filters.period)
+      });
+      if (filters.type === 'shorts') params.set('videoDuration', 'short');
+      if (filters.type === 'long') params.set('videoDuration', 'long');
+
+      const url = `${apiBase}/youtube-search?${params.toString()}`;
+
+      try{
+        const res = await fetch(url, { headers: { 'Accept': 'application/json' }});
+        const payload = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(mapYouTubeError(res.status, payload));
+        const videos = Array.isArray(payload.videos) ? payload.videos : [];
+        if (!videos.length) throw new Error('Nenhum resultado encontrado.');
+        return { source:'api', videos };
+      }catch(err){
+        if (isDemoFallbackError(err)){
+          return { source:'demo', videos: demoVideos(query, filters), warning:'Modo demo ativado: configure o backend para usar dados reais.' };
+        }
+        throw err;
+      }
+    }
+
+    function analyzeVideos(rawVideos){
+      const base = rawVideos.map(v => {
+        const viewCount = Number(v.viewCount || v.statistics?.viewCount || 0);
+        const likeCount = Number(v.likeCount || v.statistics?.likeCount || 0);
+        const commentCount = Number(v.commentCount || v.statistics?.commentCount || 0);
+        const durationSec = Number(v.durationSec || v.durationSeconds || parseDuration(v.duration || v.contentDetails?.duration));
+        const publishedAt = v.publishedAt || v.snippet?.publishedAt || new Date().toISOString();
+        const hours = ageHours(publishedAt);
+        const viewsPerHour = viewCount / Math.max(hours, 1);
+        const viewsPerDay = viewCount / Math.max(hours / 24, 1);
+        const engagementRate = (likeCount + commentCount) / Math.max(viewCount, 1);
+        const channelSubscriberCount = Number(v.channelSubscriberCount || v.subscriberCount || v.channelStats?.subscriberCount || 0) || null;
+        const title = v.title || v.snippet?.title || '';
+        const channelTitle = v.channelTitle || v.snippet?.channelTitle || '';
+        const channelId = v.channelId || v.snippet?.channelId || '';
+        const thumbnail = v.thumbnail || v.thumbnails?.high?.url || v.thumbnails?.medium?.url || v.snippet?.thumbnails?.high?.url || v.snippet?.thumbnails?.medium?.url || `https://picsum.photos/seed/${encodeURIComponent(title)}/640/360`;
+        const url = v.url || `https://www.youtube.com/watch?v=${v.id || v.videoId || ''}`;
+
+        return {
+          id: v.id || v.videoId || uid(),
+          title,
+          channelTitle,
+          channelId,
+          publishedAt,
+          durationSec,
+          duration: v.duration || v.contentDetails?.duration || `PT${durationSec}S`,
+          viewCount,
+          likeCount,
+          commentCount,
+          viewsPerHour,
+          viewsPerDay,
+          engagementRate,
+          ageHours: hours,
+          ageLabel: ageLabel(publishedAt),
+          publishedLabel: formatDate(publishedAt),
+          thumbnail,
+          url,
+          channelSubscriberCount
+        };
+      });
+
+      const speeds = base.map(v => v.viewsPerHour);
+      const ages = base.map(v => v.ageHours);
+      const engagements = base.map(v => v.engagementRate);
+
+      const titleTokens = base.map(v => tokenize(v.title));
+      const allTokens = titleTokens.flat();
+      const freq = new Map();
+      allTokens.forEach(t => freq.set(t, (freq.get(t) || 0) + 1));
+
+      const topTokens = [...freq.entries()]
+        .sort((a,b) => b[1] - a[1])
+        .filter(([w,c]) => c >= 2)
+        .slice(0, 12);
+
+      const tokenInTitleCount = (tokens, title) => {
+        const set = new Set(tokenize(title));
+        return tokens.filter(([t]) => set.has(t)).length;
+      };
+
+      const titleScores = base.map(v => tokenInTitleCount(topTokens, v.title));
+      const titleRanks = rankScores(titleScores, true);
+      const speedRanks = rankScores(speeds, true);
+      const recencyRanks = rankScores(ages, false); // menores idades recebem score maior
+      const engagementRanks = rankScores(engagements, true);
+
+      const channelSignals = base.map(v => {
+        if (!v.channelSubscriberCount) return 0.5;
+        const ratio = v.viewCount / Math.max(v.channelSubscriberCount, 1);
+        return clamp(ratio / 2, 0, 1); // 0 a 1 com sobra para canais menores
+      });
+      const channelRanks = rankScores(channelSignals, true);
+
+      base.forEach((v, i) => {
+        const opportunityBase = clamp((titleScores[i] / Math.max(topTokens.length || 1, 1)), 0, 1);
+        v.themeScore = opportunityBase;
+        v.viralScore = Math.round(
+          100 * (
+            0.30 * speedRanks[i] +
+            0.20 * recencyRanks[i] +
+            0.20 * channelRanks[i] +
+            0.10 * engagementRanks[i] +
+            0.10 * titleRanks[i] +
+            0.10 * opportunityBase
+          )
+        );
+        v.scoreClass = scoreClass(v.viralScore);
+      });
+
+      base.sort((a,b) => b.viralScore - a.viralScore);
+
+      const topTerms = topTokens.map(([term, count]) => ({ term, count }));
+      const phraseCounts = new Map();
+      base.forEach(v => {
+        const words = tokenize(v.title);
+        for (let i = 0; i < words.length - 1; i++){
+          const phrase = `${words[i]} ${words[i+1]}`;
+          phraseCounts.set(phrase, (phraseCounts.get(phrase) || 0) + 1);
+        }
+      });
+
+      const clusters = [...phraseCounts.entries()]
+        .filter(([,count]) => count >= 2)
+        .map(([phrase, count]) => {
+          const matches = base.filter(v => normalizeText(v.title).includes(phrase));
+          const distinctChannels = new Set(matches.map(v => v.channelId || v.channelTitle)).size;
+          const avgScore = avg(matches.map(v => v.viralScore));
+          const avgSpeed = avg(matches.map(v => v.viewsPerHour));
+          const avgAge = avg(matches.map(v => v.ageHours));
+          const multiChannelFactor = matches.length ? (distinctChannels / matches.length) : 0;
+          const saturation = clamp(1 - multiChannelFactor, 0, 1);
+          const opportunity = clamp(
+            0.35 * (count / Math.max(base.length, 1)) +
+            0.25 * (avgScore / 100) +
+            0.20 * multiChannelFactor +
+            0.20 * (1 - saturation),
+            0,
+            1
+          );
+          const level = opportunity >= 0.72 ? 'Alta' : opportunity >= 0.52 ? 'Média' : 'Baixa';
+          return {
+            phrase,
+            count,
+            matches,
+            distinctChannels,
+            avgScore,
+            avgSpeed,
+            avgAge,
+            saturation,
+            opportunity,
+            level
+          };
+        })
+        .sort((a,b) => b.opportunity - a.opportunity)
+        .slice(0, 8);
+
+      const curiousCounts = CURIOUS_REGEX.map(item => ({
+        label: item.label,
+        count: base.reduce((s, v) => s + (item.test(v.title) ? 1 : 0), 0)
+      })).filter(x => x.count > 0).sort((a,b) => b.count - a.count);
+
+      const structures = [
+        { label:'Pergunta / curiosidade', count: base.filter(v => CURIOUS_REGEX[0].test(v.title) || CURIOUS_REGEX[2].test(v.title)).length },
+        { label:'Número / lista', count: base.filter(v => CURIOUS_REGEX[1].test(v.title)).length },
+        { label:'Contraste / virada', count: base.filter(v => CURIOUS_REGEX[3].test(v.title)).length },
+        { label:'Linha do tempo', count: base.filter(v => CURIOUS_REGEX[4].test(v.title)).length },
+        { label:'Caso / investigação', count: base.filter(v => CURIOUS_REGEX[5].test(v.title)).length },
+      ].filter(x => x.count > 0).sort((a,b) => b.count - a.count);
+
+      const titleLengths = base.map(v => v.title.length);
+      const avgTitleLen = avg(titleLengths);
+      const avgTitleWords = avg(base.map(v => tokenize(v.title).length));
+      const avgScore = avg(base.map(v => v.viralScore));
+      const avgVph = avg(base.map(v => v.viewsPerHour));
+
+      const viralNow = base.filter(v => v.viralScore >= 75 && v.ageHours <= 72).slice(0, 6);
+      const rising = base
+        .filter(v => v.viralScore >= 55 && v.viewCount < 1000000)
+        .sort((a,b) => b.viewsPerHour - a.viewsPerHour)
+        .slice(0, 6);
+
+      return {
+        videos: base,
+        topTerms,
+        clusters,
+        curiousCounts,
+        structures,
+        avgTitleLen,
+        avgTitleWords,
+        avgScore,
+        avgVph,
+        viralNow,
+        rising,
+        scoreHistogram: histogram(base.map(v => v.viralScore), [0, 40, 60, 80, 100]),
+        speedHistogram: base
+      };
+    }
+
+    function histogram(values, breaks){
+      const bins = [];
+      for (let i = 0; i < breaks.length - 1; i++){
+        bins.push({
+          label: `${breaks[i]}–${breaks[i+1]}`,
+          count: values.filter(v => v >= breaks[i] && (i === breaks.length - 2 ? v <= breaks[i+1] : v < breaks[i+1])).length
+        });
+      }
+      return bins;
+    }
+
+    function buildPatterns(analysis){
+      const words = analysis.topTerms.slice(0, 12);
+      const curios = analysis.curiousCounts.slice(0, 8);
+      const structures = analysis.structures.slice(0, 8);
+
+      $('#wordsCloud').innerHTML = words.length
+        ? words.map(x => `<span class="tag"><strong>${escapeHtml(x.term)}</strong> · ${x.count}</span>`).join('')
+        : `<div class="empty">Sem palavras recorrentes suficientes nesta busca.</div>`;
+
+      $('#curiosityCloud').innerHTML = curios.length
+        ? curios.map(x => `<span class="tag"><strong>${escapeHtml(x.label)}</strong> · ${x.count}</span>`).join('')
+        : `<div class="empty">Nenhum termo de curiosidade detectado.</div>`;
+
+      $('#structureList').innerHTML = structures.length
+        ? structures.map(x => `
+            <div class="pattern-item">
+              <strong>${escapeHtml(x.label)}</strong>
+              <span class="muted">${x.count} vídeos</span>
+            </div>
+          `).join('')
+        : `<div class="empty">Sem padrão estrutural forte nesta amostra.</div>`;
+
+      $('#editorialSummary').innerHTML = `
+        <div class="pattern-item"><strong>Tamanho médio do título</strong><span class="muted">${analysis.avgTitleLen.toFixed(0)} caracteres</span></div>
+        <div class="pattern-item"><strong>Tamanho médio em palavras</strong><span class="muted">${analysis.avgTitleWords.toFixed(1)} palavras</span></div>
+        <div class="pattern-item"><strong>Score médio</strong><span class="muted">${analysis.avgScore.toFixed(0)}/100</span></div>
+        <div class="pattern-item"><strong>Views/hora médio</strong><span class="muted">≈ ${formatNumber(analysis.avgVph)}</span></div>
+      `;
+    }
+
+    function renderKpis(){
+      const a = state.current;
+      const videosAnalyzed = a?.videos?.length || 0;
+      const trends = a?.clusters?.length || 0;
+      const opportunities = a?.clusters?.filter(c => c.opportunity >= 0.72).length || 0;
+      const avgScore = a?.avgScore ? Math.round(a.avgScore) : 0;
+
+      $('#kpis').innerHTML = [
+        { label:'Vídeos analisados', value: formatNumber(videosAnalyzed), desc:'Resultados coletados nesta busca' },
+        { label:'Tendências detectadas', value: formatNumber(trends), desc:'Clusters recorrentes encontrados' },
+        { label:'Oportunidades fortes', value: formatNumber(opportunities), desc:'Temas com boa chance editorial' },
+        { label:'Média de Viral Score', value: avgScore ? `${avgScore}` : '—', desc:'Calculado a partir dos dados disponíveis' }
+      ].map(k => `
+        <div class="kpi">
+          <div class="label">${escapeHtml(k.label)}</div>
+          <div class="value">${k.value}</div>
+          <div class="desc">${escapeHtml(k.desc)}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderVideoCard(v){
+      return `
+        <article class="video-card">
+          <img src="${escapeHtml(v.thumbnail)}" alt="${escapeHtml(v.title)}" loading="lazy" />
+          <div class="video-body">
+            <div class="video-head">
+              <div>
+                <div class="pill ${v.scoreClass}">🔥 Potencial de tendência: ${v.viralScore}/100</div>
+                <h3 class="video-title">${escapeHtml(v.title)}</h3>
+                <div class="video-channel">${escapeHtml(v.channelTitle)} · publicado há ${escapeHtml(v.ageLabel)}</div>
+              </div>
+              <div class="pill">${escapeHtml(formatDuration(v.durationSec))}</div>
+            </div>
+
+            <div class="meta">
+              <span class="pill">${formatNumber(v.viewCount)} visualizações</span>
+              <span class="pill">${formatNumber(v.likeCount)} curtidas</span>
+              <span class="pill">${formatNumber(v.commentCount)} comentários</span>
+              <span class="pill">${v.viewsPerHour ? `≈ ${formatNumber(v.viewsPerHour)} views/hora` : 'views/hora —'}</span>
+              <span class="pill">${v.viewsPerDay ? `≈ ${formatNumber(v.viewsPerDay)} views/dia` : 'views/dia —'}</span>
+              ${v.channelSubscriberCount ? `<span class="pill">Canal: ${formatNumber(v.channelSubscriberCount)} inscritos</span>` : ''}
+            </div>
+
+            <div class="video-stats">
+              <div><strong>Publicado em:</strong> ${escapeHtml(v.publishedLabel)}</div>
+              <div><strong>Engagement rate:</strong> ${((v.engagementRate || 0) * 100).toFixed(2).replace('.', ',')}%</div>
+              <div><strong>Velocidade:</strong> ${formatNumber(v.viewsPerHour)} views/h</div>
+              <div><strong>Recência:</strong> ${v.ageLabel}</div>
+            </div>
+
+            <div class="video-actions">
+              <a class="btn dark small" href="${escapeHtml(v.url)}" target="_blank" rel="noopener">Abrir no YouTube</a>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderVideoList(list, emptyText){
+      if (!list || !list.length) return `<div class="empty">${escapeHtml(emptyText)}</div>`;
+      return `<div class="grid">${list.map(renderVideoCard).join('')}</div>`;
+    }
+
+    function renderOpportunities(){
+      const a = state.current;
+      if (!a || !a.clusters?.length){
+        $('#opportunityList').innerHTML = `<div class="empty">Faça uma busca para detectar oportunidades editoriais.</div>`;
+        return;
+      }
+
+      $('#opportunityList').innerHTML = a.clusters.map((c, idx) => {
+        const saturationLabel = c.saturation < 0.35 ? 'BAIXA' : c.saturation < 0.7 ? 'MÉDIA' : 'ALTA';
+        const levelClass = c.level === 'Alta' ? 'good' : c.level === 'Média' ? 'warn' : 'bad';
+        const matchTitles = c.matches.slice(0, 3).map(v => `• ${v.title}`).join('<br>');
+        return `
+          <article class="op-card">
+            <div class="row" style="justify-content:space-between;align-items:flex-start">
+              <div>
+                <h3>Tendência detectada: <span style="color:var(--accent)">${escapeHtml(c.phrase)}</span></h3>
+                <div class="why">Crescimento acima do normal em resultados recentes com títulos parecidos.</div>
+              </div>
+              <span class="pill ${levelClass}">Potencial ${Math.round(c.opportunity * 100)}/100</span>
+            </div>
+            <ul>
+              <li>${c.matches.length} vídeos recentes relacionados</li>
+              <li>${c.distinctChannels} canais diferentes</li>
+              <li>Score médio ${c.avgScore.toFixed(0)}/100</li>
+              <li>Saturação ${saturationLabel}</li>
+            </ul>
+            <div class="why" style="margin-top:10px"><strong>Por que pode ser oportunidade?</strong> Há repetição do tema com canais diferentes e desempenho acima do esperado.</div>
+            <div class="hint">Exemplos encontrados:<br>${matchTitles || '—'}</div>
+            <div class="video-actions">
+              <button class="btn primary small" onclick="generateIdeasFromCluster(${idx})">Gerar ideias originais</button>
+              <button class="btn dark small" onclick="fillStudioFromCluster(${idx})">Levar para o estúdio</button>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function renderCharts(){
+      const a = state.current;
+      if (!a || !a.videos?.length){
+        $('#chartsGrid').innerHTML = `<div class="empty" style="grid-column:1/-1">Os gráficos aparecem após a primeira análise.</div>`;
+        return;
+      }
+
+      const topSpeed = a.videos.slice().sort((x,y)=>y.viewsPerHour - x.viewsPerHour).slice(0,8);
+      const maxSpeed = Math.max(...topSpeed.map(v=>v.viewsPerHour), 1);
+
+      const speedChart = `
+        <div class="chart">
+          <h3>Views por hora</h3>
+          ${topSpeed.map(v => `
+            <div class="bar-row">
+              <div>${escapeHtml(shorten(v.title, 26))}</div>
+              <div class="bar"><i style="width:${Math.max(8, (v.viewsPerHour / maxSpeed) * 100)}%"></i></div>
+              <div style="text-align:right">${formatNumber(v.viewsPerHour)}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      const hist = histogram(a.videos.map(v=>v.viralScore), [0, 40, 60, 80, 100]);
+      const maxHist = Math.max(...hist.map(x=>x.count), 1);
+      const scoreChart = `
+        <div class="chart">
+          <h3>Distribuição do Viral Score</h3>
+          ${hist.map(b => `
+            <div class="bar-row">
+              <div>${escapeHtml(b.label)}</div>
+              <div class="bar"><i style="width:${Math.max(8, (b.count / maxHist) * 100)}%"></i></div>
+              <div style="text-align:right">${b.count}</div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+
+      const terms = a.topTerms.slice(0, 10);
+      const maxTerm = Math.max(...terms.map(x=>x.count), 1);
+      const termsChart = `
+        <div class="chart">
+          <h3>Palavras mais utilizadas</h3>
+          ${terms.length ? terms.map(t => `
+            <div class="bar-row">
+              <div>${escapeHtml(t.term)}</div>
+              <div class="bar"><i style="width:${Math.max(8, (t.count / maxTerm) * 100)}%"></i></div>
+              <div style="text-align:right">${t.count}</div>
+            </div>
+          `).join('') : '<div class="hint">Sem termos recorrentes suficientes.</div>'}
+        </div>
+      `;
+
+      $('#chartsGrid').innerHTML = speedChart + scoreChart + termsChart;
+    }
+
+    function renderHistory(){
+      const list = state.history || [];
+      const latest = list.slice(0, 3);
+
+      $('#compareGrid').innerHTML = latest.length ? latest.map(item => `
+        <div class="compare">
+          <div class="small">${formatDate(item.date)}</div>
+          <div class="big">${Math.round(item.avgScore || 0)}/100</div>
+          <div><strong>${escapeHtml(item.query)}</strong></div>
+          <div class="small">${item.videosCount || 0} vídeos · ${item.opportunitiesCount || 0} oportunidades fortes</div>
+        </div>
+      `).join('') : `<div class="empty" style="grid-column:1/-1">Ainda não há análises salvas.</div>`;
+
+      $('#historyList').innerHTML = list.length ? list.map((item, idx) => `
+        <article class="history-item">
+          <div class="history-top">
+            <div>
+              <h3>${escapeHtml(item.query)}</h3>
+              <div class="history-meta">${formatDate(item.date)} · ${escapeHtml(item.filters?.country || 'BR')} · ${escapeHtml(item.filters?.period || '7d')} · ${escapeHtml(item.filters?.type || 'all')}</div>
+            </div>
+            <span class="pill">Score médio ${Math.round(item.avgScore || 0)}/100</span>
+          </div>
+          <div class="history-meta" style="margin-top:10px">
+            ${item.videosCount || 0} vídeos analisados · ${item.trends || 0} tendências detectadas · ${item.opportunitiesCount || 0} oportunidades fortes
+          </div>
+          <div class="video-actions">
+            <button class="btn dark small" onclick="loadHistoryItem(${idx})">Reabrir</button>
+          </div>
+        </article>
+      `).join('') : `<div class="empty">O histórico de análises aparecerá aqui automaticamente.</div>`;
+    }
+
+    function renderIdeas(){
+      const list = state.ideas || [];
+      $('#ideaList').innerHTML = list.length ? list.map(item => `
+        <article class="idea-item">
+          <div class="row" style="justify-content:space-between;align-items:flex-start">
+            <div>
+              <h3>${escapeHtml(item.title)}</h3>
+              <div class="history-meta">${escapeHtml(item.format)} · ${formatDate(item.createdAt)}</div>
+            </div>
+            <span class="pill">${escapeHtml(item.format)}</span>
+          </div>
+          <div class="meta">
+            <span class="pill">Ângulo: ${escapeHtml(item.angle || '—')}</span>
+            <span class="pill">Hook: ${escapeHtml(item.hook || '—')}</span>
+          </div>
+          <p style="margin:10px 0 0;color:var(--muted)">${escapeHtml(item.why || '')}</p>
+          <div class="actions">
+            <button class="btn dark small" onclick="fillScriptTemplate('${item.id}')">Gerar roteiro</button>
+            <button class="btn ghost small" onclick="copyIdea('${item.id}')">Copiar ideia</button>
+            <button class="btn dark small" onclick="deleteIdea('${item.id}')">Remover</button>
+          </div>
+        </article>
+      `).join('') : `<div class="empty">Salve ideias originais aqui. Você também pode gerar 10 ideias a partir da análise atual.</div>`;
+    }
+
+    function updateStatusBanner(message, type = 'warn'){
+      const el = $('#statusBanner');
+      if (!message){
+        el.style.display = 'none';
+        el.textContent = '';
+        return;
+      }
+      el.className = `banner ${type}`;
+      el.textContent = message;
+      el.style.display = 'block';
+    }
+
+    function renderAll(){
+      renderKpis();
+      renderPatternsAndInsights();
+      renderVideoSections();
+      renderCharts();
+      renderHistory();
+      renderIdeas();
+    }
+
+    function renderPatternsAndInsights(){
+      const a = state.current;
+      if (!a){
+        $('#wordsCloud').innerHTML = `<div class="empty">Faça uma análise para ver padrões.</div>`;
+        $('#curiosityCloud').innerHTML = `<div class="empty">Faça uma análise para ver termos de curiosidade.</div>`;
+        $('#structureList').innerHTML = `<div class="empty">Os padrões de título aparecem após a busca.</div>`;
+        $('#editorialSummary').innerHTML = `<div class="empty">O resumo editorial aparece após a busca.</div>`;
+        return;
+      }
+      buildPatterns(a);
+    }
+
+    function renderVideoSections(){
+      const a = state.current;
+      if (!a){
+        $('#viralNow').innerHTML = `<div class="empty">Digite um nicho e clique em ANALISAR YOUTUBE.</div>`;
+        $('#rising').innerHTML = `<div class="empty">Os vídeos que estão subindo aparecem aqui depois da busca.</div>`;
+        $('#opportunityList').innerHTML = `<div class="empty">As oportunidades serão calculadas após a pesquisa.</div>`;
+        return;
+      }
+      $('#viralNow').innerHTML = renderVideoList(a.viralNow, 'Nenhum vídeo atingiu o corte de viralização nesta busca.');
+      $('#rising').innerHTML = renderVideoList(a.rising, 'Nenhum vídeo mostrou aceleração relevante nesta busca.');
+      renderOpportunities();
+    }
+
+    function buildScriptTemplate(item){
+      const title = item?.title || $('#ideaTitle').value.trim() || 'Minha ideia';
+      const format = item?.format || $('#scriptDuration').value || '10 min';
+      const hook = item?.hook || $('#ideaHook').value.trim() || 'Abra com a informação mais forte e inesperada.';
+      return [
+        `TÍTULO: ${title}`,
+        `FORMATO: ${format}`,
+        '',
+        'HOOK',
+        hook,
+        '',
+        'INTRODUÇÃO',
+        'Apresente o contexto sem enrolar e diga por que esse tema importa agora.',
+        '',
+        'DESENVOLVIMENTO',
+        '1. O que chamou atenção.',
+        '2. Evidências / exemplos / fatos.',
+        '3. Como isso conecta com o nicho.',
+        '',
+        'VIRADA',
+        'Mostre a informação mais surpreendente ou a mudança de perspectiva.',
+        '',
+        'CONCLUSÃO',
+        'Feche com síntese clara e reforço da ideia principal.',
+        '',
+        'CTA',
+        'Convide para comentar, salvar ou assistir o próximo vídeo.',
+      ].join('\n');
+    }
+
+    function saveHistory(){
+      if (!state.current) return;
+      const item = {
+        id: uid(),
+        date: new Date().toISOString(),
+        query: state.current.query,
+        filters: state.current.filters,
+        videosCount: state.current.videos.length,
+        trends: state.current.clusters.length,
+        opportunitiesCount: state.current.clusters.filter(c => c.opportunity >= 0.72).length,
+        avgScore: state.current.avgScore,
+        source: state.current.source,
+      };
+      state.history.unshift(item);
+      state.history = state.history.slice(0, 20);
+      saveJSON('vr_history', state.history);
+    }
+
+    async function runSearch(){
+      const query = $('#query').value.trim();
+      const filters = {
+        country: $('#country').value,
+        period: $('#period').value,
+        type: $('#type').value
+      };
+
+      if (!query){
+        toast('Digite um nicho ou assunto para analisar.');
+        return;
+      }
+
+      $('#query').blur();
+      updateStatusBanner('Pesquisando vídeos no YouTube...');
+      $('#searchForm button[type="submit"]').disabled = true;
+
+      try{
+        const result = await searchYouTube(query, filters);
+        const analysis = analyzeVideos(result.videos);
+        state.current = {
+          query,
+          filters,
+          source: result.source,
+          warning: result.warning || '',
+          ...analysis
+        };
+        saveHistory();
+        renderAll();
+        if (result.warning) updateStatusBanner(result.warning, 'warn');
+        else updateStatusBanner(`Busca concluída com sucesso. ${result.source === 'demo' ? 'Modo demo ativado.' : 'Dados reais carregados.'}`, 'good');
+      }catch(err){
+        state.current = null;
+        renderAll();
+        updateStatusBanner(mapYouTubeError(500, { error:{ message: String(err.message || err) } }), 'bad');
+        toast('Não foi possível concluir a análise.');
+      }finally{
+        $('#searchForm button[type="submit"]').disabled = false;
+      }
+    }
+
+    function loadHistoryItem(index){
+      const item = state.history[index];
+      if (!item) return;
+      $('#query').value = item.query;
+      $('#country').value = item.filters?.country || 'BR';
+      $('#period').value = item.filters?.period || '7d';
+      $('#type').value = item.filters?.type || 'all';
+      toast('Dados do histórico carregados. Clique em ANALISAR YOUTUBE para refazer a busca.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function addIdea(idea){
+      state.ideas.unshift({
+        id: uid(),
+        createdAt: new Date().toISOString(),
+        ...idea
+      });
+      state.ideas = state.ideas.slice(0, 50);
+      saveJSON('vr_ideas', state.ideas);
+      renderIdeas();
+    }
+
+    function saveIdeaFromForm(){
+      const idea = {
+        title: $('#ideaTitle').value.trim(),
+        angle: $('#ideaAngle').value.trim(),
+        hook: $('#ideaHook').value.trim(),
+        format: $('#ideaFormat').value,
+        why: $('#ideaWhy').value.trim()
+      };
+      if (!idea.title){
+        toast('Escreva o título da ideia.');
+        return;
+      }
+      addIdea(idea);
+      $('#ideaTitle').value = '';
+      $('#ideaAngle').value = '';
+      $('#ideaHook').value = '';
+      $('#ideaWhy').value = '';
+      toast('Ideia salva no estúdio.');
+    }
+
+    function fillStudioFromCluster(idx){
+      const a = state.current;
+      const c = a?.clusters?.[idx];
+      if (!c) return;
+      const theme = c.phrase;
+      $('#ideaTitle').value = `O que está acontecendo com ${theme}?`;
+      $('#ideaAngle').value = `Explorar por que ${theme} está aparecendo em vários canais`;
+      $('#ideaHook').value = `Abra com um fato forte e mostre por que isso chama atenção agora.`;
+      $('#ideaFormat').value = '10 min';
+      $('#ideaWhy').value = `Tema recorrente, canais diferentes e sinais de crescimento acima do normal.`;
+      window.scrollTo({ top: document.getElementById('studio').offsetTop - 16, behavior:'smooth' });
+      toast('Ideia carregada no estúdio.');
+    }
+
+    function generateIdeasFromCluster(idx){
+      const a = state.current;
+      const c = a?.clusters?.[idx];
+      const theme = c?.phrase || $('#query').value.trim() || 'o tema';
+      const topPattern = a?.structures?.[0]?.label || 'curiosidade';
+      const ideas = [
+        {
+          title: `O que está acontecendo com ${theme} agora?`,
+          angle: `Abrir a tendência e explicar o movimento`,
+          hook: `Comece pelo dado mais forte e pela pergunta que todo mundo faria.`,
+          format: '10 min',
+          why: `Funciona porque o tema já mostra repetição, recência e interesse crescente.`
+        },
+        {
+          title: `3 sinais de que ${theme} está crescendo no YouTube`,
+          angle: `Leitura prática da tendência`,
+          hook: `Entregue os sinais logo no começo.`,
+          format: '5 min',
+          why: `O formato lista facilita retenção e valor direto.`
+        },
+        {
+          title: `Por que ${theme} aparece em tantos vídeos diferentes?`,
+          angle: `Conectar recorrência com demanda`,
+          hook: `Abra com contraste entre canais e títulos parecidos.`,
+          format: '10 min',
+          why: `O tema está repetindo em vários canais, o que aponta demanda.`
+        },
+        {
+          title: `O caso de ${theme} que mudou a conversa`,
+          angle: `Narrativa com virada`,
+          hook: `Use uma mudança de cenário ou descoberta importante.`,
+          format: '15 min',
+          why: `Mistura curiosidade e progressão narrativa.`
+        },
+        {
+          title: `O que ninguém está explicando sobre ${theme}`,
+          angle: `Posicionamento editorial original`,
+          hook: `Abra com um ponto que falta na cobertura atual.`,
+          format: '10 min',
+          why: `A promessa de esclarecimento costuma gerar clique quando há dúvida no tema.`
+        },
+        {
+          title: `Como transformar ${theme} em um vídeo original`,
+          angle: `Ensinar sem copiar títulos existentes`,
+          hook: `Mostre que a ideia é usar padrões, não reproduzir conteúdo.`,
+          format: '10 min',
+          why: `Ajuda o criador a sair da tendência e chegar num ângulo próprio.`
+        },
+        {
+          title: `A pergunta mais importante sobre ${theme}`,
+          angle: `Curiosidade + clareza`,
+          hook: `Abrir com a pergunta e adiar a resposta principal.`,
+          format: 'Short',
+          why: `Excelente para Shorts ou cortes rápidos.`
+        },
+        {
+          title: `Por dentro do que está puxando ${theme}`,
+          angle: `Bastidores / análise`,
+          hook: `Comece com um exemplo concreto e suba para a conclusão.`,
+          format: '5 min',
+          why: `Bastidores e contexto costumam manter a atenção.`
+        },
+        {
+          title: `O lado que poucos viram em ${theme}`,
+          angle: `Contraste`,
+          hook: `Mostre o lado inesperado logo no início.`,
+          format: '10 min',
+          why: `Contraste e surpresa são fortes em temas com repetição.`
+        },
+        {
+          title: `Resumo rápido: ${theme} em 60 segundos`,
+          angle: `Short de síntese`,
+          hook: `Entra no assunto sem introdução longa.`,
+          format: 'Short',
+          why: `Ideal para testar demanda e abrir porta para vídeo longo.`
+        },
+      ];
+      ideas.forEach(addIdea);
+      updateScriptFromIdea(ideas[0]);
+      toast('10 ideias originais geradas e salvas.');
+    }
+
+    function updateScriptFromIdea(idea){
+      $('#scriptText').value = buildScriptTemplate(idea);
+    }
+
+    function fillScriptTemplate(id){
+      const item = state.ideas.find(x => x.id === id);
+      if (!item) return;
+      $('#scriptText').value = buildScriptTemplate(item);
+      $('#scriptDuration').value = item.format || '10 min';
+      window.scrollTo({ top: document.getElementById('studio').offsetTop - 16, behavior:'smooth' });
+      toast('Roteiro-base gerado.');
+    }
+
+    function copyIdea(id){
+      const item = state.ideas.find(x => x.id === id);
+      if (!item) return;
+      const text = [
+        `Título: ${item.title}`,
+        `Ângulo: ${item.angle || ''}`,
+        `Hook: ${item.hook || ''}`,
+        `Formato: ${item.format || ''}`,
+        `Por que pode funcionar: ${item.why || ''}`
+      ].join('\n');
+      navigator.clipboard?.writeText(text).then(
+        () => toast('Ideia copiada.'),
+        () => toast('Não foi possível copiar automaticamente.')
+      );
+    }
+
+    function deleteIdea(id){
+      state.ideas = state.ideas.filter(x => x.id !== id);
+      saveJSON('vr_ideas', state.ideas);
+      renderIdeas();
+      toast('Ideia removida.');
+    }
+
+    function buildExamples(){
+      const examples = ['true crime','transtorno bipolar','culinária','beleza','tecnologia','histórias bíblicas','restauração','finanças'];
+      $('#examples').innerHTML = examples.map(x => `<button class="chip" type="button" data-q="${escapeHtml(x)}">${escapeHtml(x)}</button>`).join('');
+      $$('#examples [data-q]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          $('#query').value = btn.dataset.q;
+          runSearch();
+        });
+      });
+    }
+
+    function renderInitial(){
+      renderAll();
+      buildExamples();
+      $('#apiBase').value = localStorage.getItem('vr_api_base') || '';
+      updateStatusBanner('Pronto para analisar tendências. Se o backend não estiver configurado, o app usa modo demo.', 'warn');
+    }
+
+    function saveApiBase(){
+      const value = $('#apiBase').value.trim();
+      if (value){
+        localStorage.setItem('vr_api_base', value.replace(/\/$/, ''));
+        toast('Endpoint salvo no navegador.');
+      }else{
+        localStorage.removeItem('vr_api_base');
+        toast('Modo automático ativado.');
+      }
+    }
+
+    function clearApiBase(){
+      localStorage.removeItem('vr_api_base');
+      $('#apiBase').value = '';
+      toast('Endpoint removido.');
+    }
+
+    function generateIdeasFromCurrent(){
+      const a = state.current;
+      if (!a){
+        toast('Faça uma busca primeiro para gerar ideias.');
+        return;
+      }
+      const clusterIndex = 0;
+      generateIdeasFromCluster(clusterIndex);
+    }
+
+    $('#searchForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      runSearch();
+    });
+    $('#saveApi').addEventListener('click', saveApiBase);
+    $('#clearApi').addEventListener('click', clearApiBase);
+    $('#saveIdea').addEventListener('click', saveIdeaFromForm);
+    $('#generateIdeas').addEventListener('click', generateIdeasFromCurrent);
+    $('#copyScript').addEventListener('click', () => {
+      const text = $('#scriptText').value.trim();
+      if (!text) return toast('Não há roteiro para copiar.');
+      navigator.clipboard?.writeText(text).then(
+        () => toast('Roteiro copiado.'),
+        () => toast('Não foi possível copiar automaticamente.')
+      );
+    });
+    $('#apiBase').value = localStorage.getItem('vr_api_base') || '';
+
+    window.generateIdeasFromCluster = generateIdeasFromCluster;
+    window.fillStudioFromCluster = fillStudioFromCluster;
+    window.fillScriptTemplate = fillScriptTemplate;
+    window.copyIdea = copyIdea;
+    window.deleteIdea = deleteIdea;
+    window.loadHistoryItem = loadHistoryItem;
+
+    renderInitial();
+  </script>
+</body>
+</html>
