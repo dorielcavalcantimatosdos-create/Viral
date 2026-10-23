@@ -136,4 +136,3 @@ document.addEventListener('change',e=>{const i=e.target.id||'',v=e.target.value;
 function draw(){$('#n').innerHTML=TABS.map((t,i)=>`<button class="${i===tab?'on':''}" onclick="tab=${i};draw()">${t}</button>`).join('');try{$('#a').innerHTML=VW[tab]()}catch(e){$('#a').innerHTML='<div class="card bad">Erro: '+E(e.message)+'</div>'}}
 draw();
 </script></body></html>
-<script src="extra7.js"></script>
